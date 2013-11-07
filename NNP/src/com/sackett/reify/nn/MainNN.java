@@ -21,6 +21,8 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +57,14 @@ public class MainNN {
 	/** Output data. */
 	private double[][] trainOutputs;
 
+	private static DecimalFormat decFormat = new DecimalFormat("#.####");
+	
+	private static DecimalFormat pctFormat = new DecimalFormat("#.#");
+	
+	static {
+		decFormat.setRoundingMode(RoundingMode.HALF_UP);
+		pctFormat.setRoundingMode(RoundingMode.HALF_UP);
+	}
 
 	/** Main program for neural network test. */
 	public static void main(String[] args) {
@@ -148,7 +158,7 @@ public class MainNN {
 		
 		neuralNetwork = buildNeuralNetwork(numInputNodes, numHiddenNodes, numOutputNodes, biasNodes);
 	}
-	
+		
 	private void run() {
 		// Loop through epochs.
 		for (int epoch = 0 ; epoch < maxEpochs ; epoch++) {
@@ -169,7 +179,7 @@ public class MainNN {
 				sumClassError = sumClassError + classifyOutput.getClassError();
 			}
 			
-			System.out.println("Epoch " + epoch + ": maxRMSE: " + maxRMSE + ", aveRMSE: " + sumRMSE / trainInputs.length + ", Acc: " + ((1 - sumClassError / trainInputs.length) * 100) + '%');
+			System.out.println("Epoch " + epoch + ": maxRMSE: " + decFormat.format(maxRMSE) + ", aveRMSE: " + decFormat.format(sumRMSE / trainInputs.length) + ", Acc: " + pctFormat.format((1 - sumClassError / trainInputs.length) * 100) + '%');
 			
 			// Terminate if classification error is zero.
 			if (sumClassError == 0.0) {
