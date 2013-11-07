@@ -17,60 +17,43 @@
 */
 package com.sackett.reify.nn;
 
+import java.util.ArrayList;
+import java.util.List;
 
 /** 
- * This represents a node in a neural network. 
+ * This represents an output node in a neural network. 
  * @author Joseph Sackett
  */
-public abstract class Node {
-	/** Node output value. */
-	protected double output = 0.0d;
-	
-	/** Bias node flag. Indicates this is a bias node. */
-	private boolean bias = false;
-	
-	/** Node error. */
-	protected double error = 0.0d;
-	
+public class OutputNode extends Node {
+	/** Input synapses. */
+	List<Napse> inputNapses = new ArrayList<Napse>();
+
 	/** Default constructor. */
-	public Node() {
+	public OutputNode() {
 	}
-	
+
 	/**
 	 * @param output default output.
 	 * @param bias Bias node flag.
 	 */
-	public Node(double output, boolean bias) {
-		this.output = output;
-		this.bias = bias;
+	public OutputNode(double output, boolean bias) {
+		super(output, bias);
 	}
 
 	/**
-	 * @return the output
+	 * @return the inputNapses
 	 */
-	public double getOutput() {
-		return output;
+	public List<Napse> getInputNapses() {
+		return inputNapses;
 	}
-
+	
 	/**
-	 * @return the bias
+	 * Calculate the error for this output node.
+	 * @param target classification target.
+	 * @return calculated error.
 	 */
-	public boolean isBias() {
-		return bias;
-	}
-
-	/**
-	 * @return the error
-	 */
-	public double getError() {
+	public double calcError(double target) {
+		error = output * ( 1 - output ) * ( target - output );
 		return error;
 	}
-
-	/**
-	 * @param output the output to set
-	 */
-	public void setOutput(double output) {
-		this.output = output;
-	}
-
 }

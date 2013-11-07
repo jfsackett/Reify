@@ -17,60 +17,37 @@
 */
 package com.sackett.reify.nn;
 
+import java.util.ArrayList;
+import java.util.List;
 
 /** 
- * This represents a node in a neural network. 
+ * This represents an input node in a neural network. 
  * @author Joseph Sackett
  */
-public abstract class Node {
-	/** Node output value. */
-	protected double output = 0.0d;
-	
-	/** Bias node flag. Indicates this is a bias node. */
-	private boolean bias = false;
-	
-	/** Node error. */
-	protected double error = 0.0d;
-	
-	/** Default constructor. */
-	public Node() {
+public class InputNode extends Node {
+	/** Output synapses. */
+	List<Napse> outputNapses = new ArrayList<Napse>();
+
+	/**
+	 * Default constructor.
+	 */
+	public InputNode() {
+		super();
 	}
-	
+
 	/**
 	 * @param output default output.
 	 * @param bias Bias node flag.
 	 */
-	public Node(double output, boolean bias) {
-		this.output = output;
-		this.bias = bias;
+	public InputNode(double output, boolean bias) {
+		super(output, bias);
 	}
 
 	/**
-	 * @return the output
+	 * @return the outputNapses
 	 */
-	public double getOutput() {
-		return output;
-	}
-
-	/**
-	 * @return the bias
-	 */
-	public boolean isBias() {
-		return bias;
-	}
-
-	/**
-	 * @return the error
-	 */
-	public double getError() {
-		return error;
-	}
-
-	/**
-	 * @param output the output to set
-	 */
-	public void setOutput(double output) {
-		this.output = output;
+	public List<Napse> getOutputNapses() {
+		return outputNapses;
 	}
 
 }

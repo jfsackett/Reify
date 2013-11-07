@@ -17,60 +17,56 @@
 */
 package com.sackett.reify.nn;
 
+import java.util.ArrayList;
+import java.util.List;
 
 /** 
- * This represents a node in a neural network. 
+ * This represents a hidden node in a neural network. 
  * @author Joseph Sackett
  */
-public abstract class Node {
-	/** Node output value. */
-	protected double output = 0.0d;
-	
-	/** Bias node flag. Indicates this is a bias node. */
-	private boolean bias = false;
-	
-	/** Node error. */
-	protected double error = 0.0d;
-	
+public class HiddenNode extends Node {
+	/** Input synapses. */
+	List<Napse> inputNapses = new ArrayList<Napse>();
+
+	/** Output synapses. */
+	List<Napse> outputNapses = new ArrayList<Napse>();
+
 	/** Default constructor. */
-	public Node() {
+	public HiddenNode() {
 	}
-	
+
 	/**
 	 * @param output default output.
 	 * @param bias Bias node flag.
 	 */
-	public Node(double output, boolean bias) {
-		this.output = output;
-		this.bias = bias;
+	public HiddenNode(double output, boolean bias) {
+		super(output, bias);
 	}
 
 	/**
-	 * @return the output
+	 * @return the inputNapses
 	 */
-	public double getOutput() {
-		return output;
+	public List<Napse> getInputNapses() {
+		return inputNapses;
 	}
 
 	/**
-	 * @return the bias
+	 * @return the outputNapses
 	 */
-	public boolean isBias() {
-		return bias;
+	public List<Napse> getOutputNapses() {
+		return outputNapses;
 	}
-
+		
 	/**
-	 * @return the error
+	 * Calculate the error for this hidden node.
+	 * @return calculated error.
 	 */
-	public double getError() {
+	public double calcError() {
+		double weightedErrors = 0.0;
+		for (Napse outputNapse : outputNapses) {
+			weightedErrors += outputNapse.getWeight() * outputNapse.getOutNode().getError();
+		}
+		error = output * ( 1 - output ) * weightedErrors;
 		return error;
 	}
-
-	/**
-	 * @param output the output to set
-	 */
-	public void setOutput(double output) {
-		this.output = output;
-	}
-
 }

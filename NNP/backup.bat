@@ -1,0 +1,5 @@
+copy C:\Users\Joe\git\Reify\NNP\src\com\sackett\reify\nn\*.java "C:\Users\Joe\Google Drive\School\Courses\NeuralNetworks-578\FinalProject\source"
+copy C:\Users\Joe\git\Reify\NNP\*.txt "C:\Users\Joe\Google Drive\School\Courses\NeuralNetworks-578\FinalProject\source"
+copy C:\Users\Joe\git\Reify\NNP\*.html "C:\Users\Joe\Google Drive\School\Courses\NeuralNetworks-578\FinalProject\source"
+copy C:\Users\Joe\git\Reify\NNP\*.bat "C:\Users\Joe\Google Drive\School\Courses\NeuralNetworks-578\FinalProject\source"
+copy C:\Users\Joe\git\Reify\NNP\*.csv "C:\Users\Joe\Google Drive\School\Courses\NeuralNetworks-578\FinalProject\source"
