@@ -18,7 +18,9 @@
 package com.sackett.reify.nn;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This represents an artificial neural network. 
@@ -33,6 +35,9 @@ public class NeuralNetwork {
 	
 	/** Input nodes. */
 	private List<InputNode> inputNodes;
+	
+	/** Hidden nodes. */
+	private List<HiddenNode> hiddenNodes;
 	
 	/** Output nodes. */
 	private List<OutputNode> outputNodes;	
@@ -69,6 +74,35 @@ public class NeuralNetwork {
 	}
 
 	/**
+	 * @return the hiddenNodes
+	 */
+	public List<HiddenNode> getHiddenNodes() {
+		return hiddenNodes;
+	}
+	
+	/**
+	 * Hidden nodes accessor with option to include or skip bias nodes.
+	 * @param withBias flag indicating whether bias nodes returned or not.
+	 * @return the hiddenNodes
+	 */
+	public List<HiddenNode> getHiddenNodes(boolean withBias) {
+		if (withBias) {
+			return hiddenNodes;
+			
+		}
+		
+		List<HiddenNode> hiddenNodesNoBias = new ArrayList<HiddenNode>();
+		for (HiddenNode hiddenNode : hiddenNodes) {
+			if (!hiddenNode.isBias()) {
+				hiddenNodesNoBias.add(hiddenNode);
+			}
+		}
+		
+		return hiddenNodesNoBias;
+	}
+
+
+	/**
 	 * @return the outputNodes
 	 */
 	public List<OutputNode> getOutputNodes() {
@@ -80,6 +114,13 @@ public class NeuralNetwork {
 	 */
 	public void setInputNodes(List<InputNode> inputNodes) {
 		this.inputNodes = inputNodes;
+	}
+
+	/**
+	 * @param hiddenNodes the hiddenNodes to set
+	 */
+	public void setHiddenNodes(List<HiddenNode> hiddenNodes) {
+		this.hiddenNodes = hiddenNodes;
 	}
 
 	/**
@@ -101,8 +142,8 @@ public class NeuralNetwork {
 			inputNodes.get(ixInput+1).setOutput(inputs[ixInput]);
 		}
 		// Clear values of hidden nodes linked to last input node (excludes bias node).
-		List<HiddenNode> hiddenNodes = getHiddenNodesFrom(inputNodes.get(inputNodes.size()-1));
-		for (HiddenNode hiddenNode : hiddenNodes) {
+		List<HiddenNode> hiddenNodesNoBias = getHiddenNodes(false);
+		for (HiddenNode hiddenNode : hiddenNodesNoBias) {
 			hiddenNode.setOutput(0.0);
 		}
 		// Clear output node values.
@@ -125,7 +166,7 @@ public class NeuralNetwork {
 		}
 
 		// Get all hidden nodes, including bias.
-		hiddenNodes = getHiddenNodesFrom(outputNodes.get(outputNodes.size()-1));
+//		hiddenNodes = getHiddenNodesFrom(outputNodes.get(outputNodes.size()-1));
 		
 		// Calculate output node NETs.
 		for (HiddenNode hiddenNode : hiddenNodes) {
@@ -189,9 +230,9 @@ public class NeuralNetwork {
 		}
 		
 		// Get hidden nodes, without bias node.
-		List<HiddenNode> hiddenNodes = getHiddenNodesFrom(inputNodes.get(inputNodes.size()-1));
+		List<HiddenNode> hiddenNodesNoBias = getHiddenNodes(false);
 		// Calculate hidden node errors. Must be done after calculating downstream errors.
-		for (HiddenNode hiddenNode : hiddenNodes) {
+		for (HiddenNode hiddenNode : hiddenNodesNoBias) {
 			hiddenNode.calcError();
 		}
 		
@@ -203,7 +244,7 @@ public class NeuralNetwork {
 		}
 		
 		// Get all hidden nodes, including bias node.
-		hiddenNodes = getHiddenNodesFrom(outputNodes.get(outputNodes.size()-1));
+//		hiddenNodes = getHiddenNodesFrom(outputNodes.get(outputNodes.size()-1));
 		// Loop through and update hidden to output node weights.
 		for (HiddenNode hiddenNode : hiddenNodes) {
 			for (Napse napse : hiddenNode.getOutputNapses()) {
@@ -212,43 +253,43 @@ public class NeuralNetwork {
 		}
 	}
 	
-	/**
-	 * Get all hidden nodes connected as outputs from an input node.
-	 * @param inputNode starting point.
-	 * @return connected list of hidden nodes.
-	 */
-	private static List<HiddenNode> getHiddenNodesFrom(InputNode inputNode) {
-		List<HiddenNode> hiddenNodes = new ArrayList<HiddenNode>();
-		for (Napse napse : inputNode.getOutputNapses()) {
-			Node outNode = napse.getOutNode();
-			// Check & safely downcast.
-			if(!(outNode instanceof HiddenNode)) {
-				continue;
-			}
-			hiddenNodes.add((HiddenNode)outNode);
-		}
-		
-		return hiddenNodes;
-	}
-	
-	/**
-	 * Get all hidden nodes connected as inputs to an output node.
-	 * @param outputNode starting point.
-	 * @return connected list of hidden nodes.
-	 */
-	private static List<HiddenNode> getHiddenNodesFrom(OutputNode outputNode) {
-		List<HiddenNode> hiddenNodes = new ArrayList<HiddenNode>();
-		for (Napse napse : outputNode.getInputNapses()) {
-			Node inNode = napse.getInNode();
-			// Check & safely downcast.
-			if(!(inNode instanceof HiddenNode)) {
-				continue;
-			}
-			hiddenNodes.add((HiddenNode)inNode);
-		}
-		
-		return hiddenNodes;
-	}
+//	/**
+//	 * Get all hidden nodes connected as outputs from an input node.
+//	 * @param inputNode starting point.
+//	 * @return connected list of hidden nodes.
+//	 */
+//	private static List<HiddenNode> getHiddenNodesFrom(InputNode inputNode) {
+//		List<HiddenNode> hiddenNodes = new ArrayList<HiddenNode>();
+//		for (Napse napse : inputNode.getOutputNapses()) {
+//			Node outNode = napse.getOutNode();
+//			// Check & safely downcast.
+//			if(!(outNode instanceof HiddenNode)) {
+//				continue;
+//			}
+//			hiddenNodes.add((HiddenNode)outNode);
+//		}
+//		
+//		return hiddenNodes;
+//	}
+//	
+//	/**
+//	 * Get all hidden nodes connected as inputs to an output node.
+//	 * @param outputNode starting point.
+//	 * @return connected list of hidden nodes.
+//	 */
+//	private static List<HiddenNode> getHiddenNodesFrom(OutputNode outputNode) {
+//		List<HiddenNode> hiddenNodes = new ArrayList<HiddenNode>();
+//		for (Napse napse : outputNode.getInputNapses()) {
+//			Node inNode = napse.getInNode();
+//			// Check & safely downcast.
+//			if(!(inNode instanceof HiddenNode)) {
+//				continue;
+//			}
+//			hiddenNodes.add((HiddenNode)inNode);
+//		}
+//		
+//		return hiddenNodes;
+//	}
 	
 	public static class ClassifyOutput {
 		/** Actual output. */
@@ -286,11 +327,104 @@ public class NeuralNetwork {
 		}
 
 		/**
-		 * @return the classError
+		 * Clone the whole neural network.
 		 */
 		public double getClassError() {
 			return classError;
 		}		
+	}
+
+	/** 
+	 * Clone the whole neural network.
+	 * @return neural network clone.
+	 */
+	@Override
+	public NeuralNetwork clone() throws CloneNotSupportedException {
+		NeuralNetwork clone = new NeuralNetwork(this.eta, this.momentum);
+		
+		// Maps of cloned nodes for resolving Napse connections.
+		Map<Double,InputNode> inputNodesCloneMap = new HashMap<Double,InputNode>();
+		Map<Double,HiddenNode> hiddenNodesCloneMap = new HashMap<Double,HiddenNode>();
+		Map<Double,OutputNode> outputNodesCloneMap = new HashMap<Double,OutputNode>();
+		
+		// Clone input nodes.
+		List<InputNode> inputNodesClone = new ArrayList<InputNode>();
+		for (InputNode inputNode : inputNodes) {
+			InputNode inputNodeClone = inputNode.clone();
+			// Add to cloned list.
+			inputNodesClone.add(inputNodeClone);
+			// Place in map for indexing to resolve Napse connections.
+			inputNodesCloneMap.put(inputNode.getId(), inputNodeClone);
+		}
+		clone.setInputNodes(inputNodesClone);
+		
+		// Clone hidden nodes.
+		List<HiddenNode> hiddenNodesClone = new ArrayList<HiddenNode>();
+		for (HiddenNode hiddenNode : hiddenNodes) {
+			HiddenNode hiddenNodeClone = hiddenNode.clone();
+			// Add to cloned list.
+			hiddenNodesClone.add(hiddenNodeClone);
+			// Place in map for indexing to resolve Napse connections.
+			hiddenNodesCloneMap.put(hiddenNode.getId(), hiddenNodeClone);
+		}
+		clone.setHiddenNodes(hiddenNodesClone);
+		
+		// Clone input nodes.
+		List<OutputNode> outputNodesClone = new ArrayList<OutputNode>();
+		for (OutputNode outputNode : outputNodes) {
+			OutputNode outputNodeClone = outputNode.clone();
+			// Add to cloned list.
+			outputNodesClone.add(outputNodeClone);
+			// Place in map for indexing to resolve Napse connections.
+			outputNodesCloneMap.put(outputNode.getId(), outputNodeClone);
+		}
+		clone.setOutputNodes(outputNodesClone);
+		
+		// Loop through input nodes, clone and connect Napses.
+		for (InputNode inputNode : inputNodes) {
+			// Get cloned input node from map.
+			InputNode inputNodeClone = inputNodesCloneMap.get(inputNode.getId());
+			List<Napse> napses = inputNode.getOutputNapses();
+			for (Napse napse : napses) {
+				// Get connected, cloned hidden node from map.
+				HiddenNode hiddenNodeClone = hiddenNodesCloneMap.get(napse.getOutNode().getId());
+				
+				// Clone napse.
+				Napse napseClone = napse.clone();
+				napseClone.setInNode(inputNodeClone);
+				napseClone.setOutNode(hiddenNodeClone);
+
+				// Place cloned napse in cloned input node outputs.
+				inputNodeClone.getOutputNapses().add(napseClone);
+
+				// Place cloned napse in cloned hidden node inputs.
+				hiddenNodeClone.getInputNapses().add(napseClone);
+			}
+		}
+		
+		// Loop through hidden nodes, clone and connect Napses.
+		for (HiddenNode hiddenNode : hiddenNodes) {
+			// Get cloned hidden node from map.
+			HiddenNode hiddenNodeClone = hiddenNodesCloneMap.get(hiddenNode.getId());
+			List<Napse> napses = hiddenNode.getOutputNapses();
+			for (Napse napse : napses) {
+				// Get connected, cloned output node from map.
+				OutputNode outputNodeClone = outputNodesCloneMap.get(napse.getOutNode().getId());
+				
+				// Clone napse.
+				Napse napseClone = napse.clone();
+				napseClone.setInNode(hiddenNodeClone);
+				napseClone.setOutNode(outputNodeClone);
+
+				// Place cloned napse in cloned hidden node outputs.
+				hiddenNodeClone.getOutputNapses().add(napseClone);
+
+				// Place cloned napse in cloned output node inputs.
+				outputNodeClone.getInputNapses().add(napseClone);
+			}
+		}
+		
+		return clone;
 	}
 
 }

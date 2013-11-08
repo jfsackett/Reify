@@ -41,6 +41,16 @@ public class OutputNode extends Node {
 	}
 
 	/**
+	 * Constructor used in clone().
+	 * @param id node id.
+	 * @param output default output.
+	 * @param bias Bias node flag.
+	 */
+	private OutputNode(double id, double output, boolean bias) {
+		super(id, output, bias);
+	}
+
+	/**
 	 * @return the inputNapses
 	 */
 	public List<Napse> getInputNapses() {
@@ -56,4 +66,17 @@ public class OutputNode extends Node {
 		error = output * ( 1 - output ) * ( target - output );
 		return error;
 	}
+	
+	/** 
+	 * Clone this output node but leave its Napses empty.
+	 * @return output node clone.
+	 */
+	@Override
+	public OutputNode clone() throws CloneNotSupportedException {
+		OutputNode outputNodeClone = new OutputNode(this.getId(), this.output, this.isBias());
+		outputNodeClone.error = this.error;
+
+		return outputNodeClone;
+	}
+
 }

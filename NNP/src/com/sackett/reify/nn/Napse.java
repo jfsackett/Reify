@@ -63,12 +63,35 @@ public class Napse {
 	}
 	
 	/**
+	 * @param inNode the inNode to set
+	 */
+	void setInNode(Node inNode) {
+		this.inNode = inNode;
+	}
+
+	/**
+	 * @param outNode the outNode to set
+	 */
+	void setOutNode(Node outNode) {
+		this.outNode = outNode;
+	}
+
+	/**
 	 * Updates weights based on upstream value & dowstream error, factored by eta & momentum.
 	 * @param eta adjustment coefficient.
 	 * @param momentum adjustment factor to prior update.
 	 */
 	public void updateWeight(double eta, double momentum) {
 		weight = weight + eta * inNode.getOutput() * outNode.getError();
+	}
+
+	/**
+	 * Clone this exactly, including former Nodes.
+	 * @return napse clone.
+	 */
+	@Override
+	public Napse clone() throws CloneNotSupportedException {
+		return new Napse(inNode, outNode, weight);
 	}
 
 }

@@ -186,6 +186,14 @@ public class MainNN {
 				System.out.println("Success");
 				break;
 			}
+			
+			try {
+				neuralNetwork = neuralNetwork.clone();
+			}
+			catch (CloneNotSupportedException ex) {
+				ex.printStackTrace();
+				neuralNetwork = null;
+			}
 		}
 	}
 
@@ -253,8 +261,9 @@ public class MainNN {
 			}
 		}
 		
-		// Add input and output layers to neural network.
+		// Add input, hidden and output layers to neural network.
 		neuralNetwork.setInputNodes(inputNodes);
+		neuralNetwork.setHiddenNodes(hiddenNodes);
 		neuralNetwork.setOutputNodes(outputNodes);
 		
 		return neuralNetwork;

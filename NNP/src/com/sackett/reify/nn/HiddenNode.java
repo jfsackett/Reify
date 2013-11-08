@@ -44,6 +44,16 @@ public class HiddenNode extends Node {
 	}
 
 	/**
+	 * Constructor used in clone().
+	 * @param id node id.
+	 * @param output default output.
+	 * @param bias Bias node flag.
+	 */
+	private HiddenNode(double id, double output, boolean bias) {
+		super(id, output, bias);
+	}
+
+	/**
 	 * @return the inputNapses
 	 */
 	public List<Napse> getInputNapses() {
@@ -69,4 +79,17 @@ public class HiddenNode extends Node {
 		error = output * ( 1 - output ) * weightedErrors;
 		return error;
 	}
+	
+	/** 
+	 * Clone this hidden node but leave its Napses empty.
+	 * @return hidden node clone.
+	 */
+	@Override
+	public HiddenNode clone() throws CloneNotSupportedException {
+		HiddenNode hiddenNodeClone = new HiddenNode(this.getId(), this.output, this.isBias());
+		hiddenNodeClone.error = this.error;
+
+		return hiddenNodeClone;
+	}
+
 }

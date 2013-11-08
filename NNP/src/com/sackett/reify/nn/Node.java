@@ -23,6 +23,9 @@ package com.sackett.reify.nn;
  * @author Joseph Sackett
  */
 public abstract class Node {
+	/** Unique Id for this node. */
+	private double id;
+	
 	/** Node output value. */
 	protected double output = 0.0d;
 	
@@ -34,15 +37,37 @@ public abstract class Node {
 	
 	/** Default constructor. */
 	public Node() {
+		this.id = Math.random();
 	}
 	
 	/**
+	 * Primary constructor.
 	 * @param output default output.
 	 * @param bias Bias node flag.
 	 */
 	public Node(double output, boolean bias) {
+		this.id = Math.random();
 		this.output = output;
 		this.bias = bias;
+	}
+
+	/**
+	 * Constructor used in clone().
+	 * @param id node id.
+	 * @param output default output.
+	 * @param bias Bias node flag.
+	 */
+	protected Node(double id, double output, boolean bias) {
+		this.id = Math.random();
+		this.output = output;
+		this.bias = bias;
+	}
+
+	/**
+	 * @return the id
+	 */
+	public double getId() {
+		return id;
 	}
 
 	/**
@@ -71,6 +96,38 @@ public abstract class Node {
 	 */
 	public void setOutput(double output) {
 		this.output = output;
+	}
+
+	/**
+	 * Method hashes Id.
+	 * @return hash code.
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(id);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+	/**
+	 * Equals method compares Ids.
+	 * @param Node to compare.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Node other = (Node) obj;
+		if (Double.doubleToLongBits(id) != Double.doubleToLongBits(other.id))
+			return false;
+		return true;
 	}
 
 }
