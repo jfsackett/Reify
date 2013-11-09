@@ -17,71 +17,66 @@
 */
 package com.sackett.reify.nn;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /** 
- * This represents an output node in a neural network. 
+ * This represents an output node who's activation is hit with factor. 
  * @author Joseph Sackett
  */
-public class OutputNode extends Node {
-	/** Input synapses. */
-	List<Napse> inputNapses = new ArrayList<Napse>();
+public class FactoredOutputNode extends OutputNode {
+	/** Factor to apply to output. */
+	double factor = 1.0;
 
 	/** Default constructor. */
-	public OutputNode() {
-		// Default to real node.
-		super(false);
+	public FactoredOutputNode() {
+		super();
 	}
 
 	/**
-	 * Primary constructor.
+	 * @param factor output factor.
 	 * @param bias Bias node flag.
 	 */
-	public OutputNode(boolean bias) {
+	public FactoredOutputNode(double factor, boolean bias) {
 		super(bias);
+		this.factor = factor;
 	}
 
 	/**
 	 * Constructor used in clone().
 	 * @param id node id.
+	 * @param factor output factor.
 	 * @param bias Bias node flag.
 	 */
-	protected OutputNode(double id, boolean bias) {
-		super(id, 0.0, bias);
+	protected FactoredOutputNode(double id, double factor, boolean bias) {
+		super(id, bias);
+		this.factor = factor;
 	}
 
-	/**
-	 * @return the inputNapses
-	 */
-	public List<Napse> getInputNapses() {
-		return inputNapses;
-	}
-	
 	/**
 	 * @return the factored output
 	 */
+	@Override
 	public double getFactoredOutput() {
-		return output;
+		return output * factor;
 	}
 
 	/**
-	 * Calculate the error for this output node.
+	 * Calculate the error for this factored output node.
 	 * @param target classification target.
 	 * @return calculated error.
 	 */
 	public double calcError(double target) {
-		error = output * ( 1 - output ) * ( target - output );
+		double factoredOutput = getFactoredOutput();
+		error = factoredOutput * ( factor - factoredOutput ) * ( target - factoredOutput );
 		return error;
 	}
 	
 	/** 
-	 * Clone this output node but leave its Napses empty.
+	 * Clone this factored output node but leave its Napses empty.
 	 * @return output node clone.
 	 */
 	@Override
-	public OutputNode clone() throws CloneNotSupportedException {
-		OutputNode outputNodeClone = new OutputNode(this.getId(), this.isBias());
+	public FactoredOutputNode clone() throws CloneNotSupportedException {
+		FactoredOutputNode outputNodeClone = new FactoredOutputNode(this.getId(), factor, this.isBias());
 		outputNodeClone.error = this.error;
 
 		return outputNodeClone;
