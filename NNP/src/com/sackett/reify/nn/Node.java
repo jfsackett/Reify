@@ -38,6 +38,7 @@ public abstract class Node {
 	/** Default constructor. */
 	public Node() {
 		this.id = Math.random();
+		this.bias = false;
 	}
 	
 	/**
@@ -49,6 +50,14 @@ public abstract class Node {
 		this.id = Math.random();
 		this.output = output;
 		this.bias = bias;
+	}
+
+	/**
+	 * Constructor for nodes without output.
+	 * @param bias Bias node flag.
+	 */
+	public Node(boolean bias) {
+		this(0.0, bias);
 	}
 
 	/**

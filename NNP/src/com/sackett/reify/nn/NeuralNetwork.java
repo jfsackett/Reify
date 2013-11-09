@@ -137,11 +137,11 @@ public class NeuralNetwork {
 	 * @return actual output values & errors.
 	 */
 	public ClassifyOutput classify(double[] inputs, double[] targetOutputs) {
-		// Set input node values (skip bias node).
+		// Set input node values (excluding bias node).
 		for (int ixInput = 0 ; ixInput < inputs.length ; ixInput++) {
 			inputNodes.get(ixInput+1).setOutput(inputs[ixInput]);
 		}
-		// Clear values of hidden nodes linked to last input node (excludes bias node).
+		// Clear values of hidden nodes linked to last input node (excluding bias node).
 		List<HiddenNode> hiddenNodesNoBias = getHiddenNodes(false);
 		for (HiddenNode hiddenNode : hiddenNodesNoBias) {
 			hiddenNode.setOutput(0.0);
@@ -165,9 +165,6 @@ public class NeuralNetwork {
 			hiddenNode.setOutput(1.0 / (1.0 + Math.exp(-1.0 * hiddenNode.getOutput())));
 		}
 
-		// Get all hidden nodes, including bias.
-//		hiddenNodes = getHiddenNodesFrom(outputNodes.get(outputNodes.size()-1));
-		
 		// Calculate output node NETs.
 		for (HiddenNode hiddenNode : hiddenNodes) {
 			for (Napse napse : hiddenNode.getOutputNapses()) {
@@ -224,72 +221,32 @@ public class NeuralNetwork {
 		// Classify inputs to set all node outputs.
 		classify(inputs, outputs);
 		
-		// Calculate output node errors (skip bias node).
+		// Calculate output node errors (excluding bias node).
 		for (int ixOutput = 1 ; ixOutput < outputNodes.size() ; ixOutput++) {
 			outputNodes.get(ixOutput).calcError(outputs[ixOutput-1]);
 		}
 		
-		// Get hidden nodes, without bias node.
+		// Get hidden nodes (excluding bias node).
 		List<HiddenNode> hiddenNodesNoBias = getHiddenNodes(false);
 		// Calculate hidden node errors. Must be done after calculating downstream errors.
 		for (HiddenNode hiddenNode : hiddenNodesNoBias) {
 			hiddenNode.calcError();
 		}
 		
-		// Loop through and update input to hidden node weights.
+		// Loop through and update input to hidden node weights (including bias node).
 		for (InputNode inputNode : inputNodes) {
 			for (Napse napse : inputNode.getOutputNapses()) {
 				napse.updateWeight(eta, momentum);
 			}
 		}
 		
-		// Get all hidden nodes, including bias node.
-//		hiddenNodes = getHiddenNodesFrom(outputNodes.get(outputNodes.size()-1));
-		// Loop through and update hidden to output node weights.
+		// Loop through and update hidden to output node weights (including bias node).
 		for (HiddenNode hiddenNode : hiddenNodes) {
 			for (Napse napse : hiddenNode.getOutputNapses()) {
 				napse.updateWeight(eta, momentum);
 			}
 		}
 	}
-	
-//	/**
-//	 * Get all hidden nodes connected as outputs from an input node.
-//	 * @param inputNode starting point.
-//	 * @return connected list of hidden nodes.
-//	 */
-//	private static List<HiddenNode> getHiddenNodesFrom(InputNode inputNode) {
-//		List<HiddenNode> hiddenNodes = new ArrayList<HiddenNode>();
-//		for (Napse napse : inputNode.getOutputNapses()) {
-//			Node outNode = napse.getOutNode();
-//			// Check & safely downcast.
-//			if(!(outNode instanceof HiddenNode)) {
-//				continue;
-//			}
-//			hiddenNodes.add((HiddenNode)outNode);
-//		}
-//		
-//		return hiddenNodes;
-//	}
-//	
-//	/**
-//	 * Get all hidden nodes connected as inputs to an output node.
-//	 * @param outputNode starting point.
-//	 * @return connected list of hidden nodes.
-//	 */
-//	private static List<HiddenNode> getHiddenNodesFrom(OutputNode outputNode) {
-//		List<HiddenNode> hiddenNodes = new ArrayList<HiddenNode>();
-//		for (Napse napse : outputNode.getInputNapses()) {
-//			Node inNode = napse.getInNode();
-//			// Check & safely downcast.
-//			if(!(inNode instanceof HiddenNode)) {
-//				continue;
-//			}
-//			hiddenNodes.add((HiddenNode)inNode);
-//		}
-//		
-//		return hiddenNodes;
-//	}
 	
 	public static class ClassifyOutput {
 		/** Actual output. */

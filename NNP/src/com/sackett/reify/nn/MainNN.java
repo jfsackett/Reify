@@ -30,6 +30,9 @@ import com.sackett.reify.nn.NeuralNetwork.ClassifyOutput;
 
 /**
  * This executes an artificial neural network. 
+ * Parameter suggestions:
+ * 	iris.csv 4 3 5 1000 0.1 0.0 -1.0 1.0 false
+ * 	pallet.csv 2 10 40 1000 0.01 0.0 -1.0 1.0 true
  * @author Joseph Sackett
  */
 public class MainNN {
@@ -78,8 +81,11 @@ public class MainNN {
 		double momentum = 0.0;
 		double minWeight = -1.0;
 		double maxWeight = 1.0;
+		boolean palletData = false;
 		
 		switch(args.length) {
+		case 10:
+			palletData = Boolean.parseBoolean(args[9]);
 		case 9:
 			maxWeight = Double.parseDouble(args[8]);
 		case 8:
@@ -103,8 +109,6 @@ public class MainNN {
 		}
 		
 		// Load data file into input & output arrays.
-//		double[][] trainInputs = new double[][]{new double[]{0.0, 0.0}, new double[]{1.0, 0.0}, new double[]{0.0, 1.0}, new double[]{1.0, 1.0}};
-//		double[][] trainOutputs = new double[][]{new double[]{0.0}, new double[]{1.0}, new double[]{1.0}, new double[]{0.0}};
 		List<double[]> trainInputs = new ArrayList<double[]>();
 		List<double[]> trainOutputs = new ArrayList<double[]>();
 		BufferedReader reader = null;
@@ -139,7 +143,8 @@ public class MainNN {
 		}
 		
 		boolean biasNodes = true;
-		MainNN mainNN = new MainNN(trainInputs.toArray(new double[trainInputs.size()][]), trainOutputs.toArray(new double[trainOutputs.size()][]), numInputNodes, numHiddenNodes, numOutputNodes, biasNodes, maxEpochs, eta, momentum, minWeight, maxWeight);
+		MainNN mainNN = new MainNN(trainInputs.toArray(new double[trainInputs.size()][]), trainOutputs.toArray(new double[trainOutputs.size()][]), 
+									numInputNodes, numHiddenNodes, numOutputNodes, biasNodes, maxEpochs, eta, momentum, minWeight, maxWeight, palletData);
 		mainNN.run();
 	}
 
@@ -147,7 +152,7 @@ public class MainNN {
 	 * Constructor takes neural network definition.
 	 */
 	private MainNN(double[][] trainInputs, double[][] trainOutputs, int numInputNodes, int numHiddenNodes, int numOutputNodes, boolean biasNodes, 
-					int maxEpochs, double eta, double momentum, double minWeight, double maxWeight) {
+					int maxEpochs, double eta, double momentum, double minWeight, double maxWeight, boolean palletData) {
 		this.trainInputs = trainInputs;
 		this.trainOutputs = trainOutputs;
 		this.maxEpochs = maxEpochs;
@@ -156,7 +161,12 @@ public class MainNN {
 		this.minWeight = minWeight;
 		this.maxWeight = maxWeight;
 		
-		neuralNetwork = buildNeuralNetwork(numInputNodes, numHiddenNodes, numOutputNodes, biasNodes);
+		if (!palletData) {
+			neuralNetwork = buildNeuralNetwork(numInputNodes, numHiddenNodes, numOutputNodes, biasNodes);
+		}
+		else {
+			neuralNetwork = buildPalletNeuralNetwork(numInputNodes, numHiddenNodes, numOutputNodes, biasNodes);
+		}
 	}
 		
 	private void run() {
@@ -218,9 +228,81 @@ public class MainNN {
 		}
 		
 		// Build input nodes (at 1..numOutputNodes). Includes unused node at index 0 for consistency.
-		outputNodes.add(new OutputNode(0.0, true));
+		outputNodes.add(new OutputNode(true));
 		for (int ix = 1 ; ix <= numOutputNodes ; ix++) {
 			outputNodes.add(new OutputNode());
+		}
+		
+		// Add synapse between input & hidden layers.
+		for (InputNode inputNode : inputNodes) {
+			// If not using bias nodes, skip adding synapses to bias node.
+			if (!biasNodes && inputNode.isBias()) {
+				continue;
+			}
+			for (HiddenNode hiddenNode : hiddenNodes) {
+				// If not using bias nodes, skip adding synapses to bias node.
+				if (hiddenNode.isBias()) {
+					continue;
+				}
+				// Create synapse.
+				Napse napse = new Napse(inputNode, hiddenNode, getRandomWeight());
+				// Add to both of its ends.
+				inputNode.getOutputNapses().add(napse);
+				hiddenNode.getInputNapses().add(napse);
+			}
+		}
+		
+		// Add synapse between hidden & output layers.
+		for (HiddenNode hiddenNode : hiddenNodes) {
+			// If not using bias nodes, skip adding synapses to bias node.
+			if (!biasNodes && hiddenNode.isBias()) {
+				continue;
+			}
+			for (OutputNode outputNode : outputNodes) {
+				// Skip adding synapses to bias node.
+				if (outputNode.isBias()) {
+					continue;
+				}
+				// Create synapse.
+				Napse napse = new Napse(hiddenNode, outputNode, getRandomWeight());
+				// Add to both of its ends.
+				hiddenNode.getOutputNapses().add(napse);
+				outputNode.getInputNapses().add(napse);
+			}
+		}
+		
+		// Add input, hidden and output layers to neural network.
+		neuralNetwork.setInputNodes(inputNodes);
+		neuralNetwork.setHiddenNodes(hiddenNodes);
+		neuralNetwork.setOutputNodes(outputNodes);
+		
+		return neuralNetwork;
+	}
+
+	private NeuralNetwork buildPalletNeuralNetwork(int numInputNodes, int numHiddenNodes, int numOutputNodes, boolean biasNodes) {
+		NeuralNetwork neuralNetwork = new NeuralNetwork(eta, momentum);
+		
+		// Build node layers. Capacity includes room for optional bias node.
+		List<InputNode> inputNodes = new ArrayList<InputNode>(numInputNodes + 1);
+		List<HiddenNode> hiddenNodes = new ArrayList<HiddenNode>(numHiddenNodes + 1);
+		List<OutputNode> outputNodes = new ArrayList<OutputNode>(numOutputNodes + 1);
+		
+		// Build input nodes (at 1..numInputNodes). Includes optionally used bias node at index 0.
+		inputNodes.add(new InputNode(1.0, true));
+		for (int ix = 1 ; ix <= numInputNodes ; ix++) {
+			inputNodes.add(new InputNode());
+		}
+		
+		// Build hidden nodes (at 1..numHiddenNodes). Includes optionally used bias node at index 0.
+		hiddenNodes.add(new HiddenNode(1.0, true));
+		for (int ix = 1 ; ix <= numHiddenNodes ; ix++) {
+			hiddenNodes.add(new HiddenNode());
+		}
+		
+		// Build input nodes (at 1..numOutputNodes). Includes unused node at index 0 for consistency.
+		outputNodes.add(new OutputNode(true));
+		for (int ix = 1 ; ix <= numOutputNodes ; ix++) {
+			outputNodes.add(new FactoredOutputNode((ix < 6) ? 9.0 : 4.0, false));
 		}
 		
 		// Add synapse between input & hidden layers.
