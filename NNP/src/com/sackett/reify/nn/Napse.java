@@ -77,6 +77,13 @@ public class Napse {
 	}
 
 	/**
+	 * @param weight the weight to set
+	 */
+	void setWeight(double weight) {
+		this.weight = weight;
+	}
+
+	/**
 	 * Updates weights based on upstream value & dowstream error, factored by eta & momentum.
 	 * @param eta adjustment coefficient.
 	 * @param momentum adjustment factor to prior update.
@@ -92,6 +99,43 @@ public class Napse {
 	@Override
 	public Napse clone() throws CloneNotSupportedException {
 		return new Napse(inNode, outNode, weight);
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((inNode == null) ? 0 : ((Double)inNode.getId()).hashCode());
+		result = prime * result + ((outNode == null) ? 0 : ((Double)outNode.getId()).hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Napse other = (Napse) obj;
+		if (inNode == null) {
+			if (other.inNode != null)
+				return false;
+		} else if (!inNode.equals(other.inNode))
+			return false;
+		if (outNode == null) {
+			if (other.outNode != null)
+				return false;
+		} else if (!outNode.equals(other.outNode))
+			return false;
+		return true;
 	}
 
 }

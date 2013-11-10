@@ -67,7 +67,7 @@ public abstract class Node {
 	 * @param bias Bias node flag.
 	 */
 	protected Node(double id, double output, boolean bias) {
-		this.id = Math.random();
+		this.id = id;
 		this.output = output;
 		this.bias = bias;
 	}

@@ -31,8 +31,9 @@ import com.sackett.reify.nn.NeuralNetwork.ClassifyOutput;
 /**
  * This executes an artificial neural network. 
  * Parameter suggestions:
- * 	iris.csv 4 3 5 1000 0.1 0.0 -1.0 1.0 false
- * 	pallet.csv 2 10 40 1000 0.01 0.0 -1.0 1.0 true
+ *  xor.csv 2 1 5 0 1000 0.1 0.0 -1.0 1.0 false
+ * 	iris.csv 4 3 5 0 1000 0.1 0.0 -1.0 1.0 false
+ * 	pallet.csv 2 10 40 0 1000 0.001 0.0 -1.0 1.0 true
  * @author Joseph Sackett
  */
 public class MainNN {
@@ -75,7 +76,8 @@ public class MainNN {
 		String inputFileName = null;
 		int numInputNodes = 0;
 		int numOutputNodes = 0;
-		int numHiddenNodes = 10;
+		int numHiddenNodes1 = 5;
+		int numHiddenNodes2 = 5;
 		int maxEpochs = 10000;
 		double eta = 1.0;
 		double momentum = 0.0;
@@ -84,20 +86,22 @@ public class MainNN {
 		boolean palletData = false;
 		
 		switch(args.length) {
+		case 11:
+			palletData = Boolean.parseBoolean(args[10]);
 		case 10:
-			palletData = Boolean.parseBoolean(args[9]);
+			maxWeight = Double.parseDouble(args[9]);
 		case 9:
-			maxWeight = Double.parseDouble(args[8]);
+			minWeight = Double.parseDouble(args[8]);
 		case 8:
-			minWeight = Double.parseDouble(args[7]);
+			momentum = Double.parseDouble(args[7]);
 		case 7:
-			momentum = Double.parseDouble(args[6]);
+			eta = Double.parseDouble(args[6]);
 		case 6:
-			eta = Double.parseDouble(args[5]);
+			maxEpochs = Integer.parseInt(args[5]);
 		case 5:
-			maxEpochs = Integer.parseInt(args[4]);
+			numHiddenNodes2 = Integer.parseInt(args[4]);
 		case 4:
-			numHiddenNodes = Integer.parseInt(args[3]);
+			numHiddenNodes1 = Integer.parseInt(args[3]);
 		case 3:
 			inputFileName = args[0];
 			numInputNodes = Integer.parseInt(args[1]);
@@ -144,7 +148,7 @@ public class MainNN {
 		
 		boolean biasNodes = true;
 		MainNN mainNN = new MainNN(trainInputs.toArray(new double[trainInputs.size()][]), trainOutputs.toArray(new double[trainOutputs.size()][]), 
-									numInputNodes, numHiddenNodes, numOutputNodes, biasNodes, maxEpochs, eta, momentum, minWeight, maxWeight, palletData);
+									numInputNodes, numHiddenNodes1, numOutputNodes, biasNodes, maxEpochs, eta, momentum, minWeight, maxWeight, palletData);
 		mainNN.run();
 	}
 
@@ -170,6 +174,26 @@ public class MainNN {
 	}
 		
 	private void run() {
+		sa();
+//		bp();
+	}
+	
+	private void sa() {
+		// Previous neural network.
+		NeuralNetwork prevNeuralNetwork = null;
+		// Previous epoch error.
+		double prevAvgRMSE = Double.MAX_VALUE;
+		// Previous epoch error.
+		double prevAccuracy = Double.MAX_VALUE;
+		// Adjustment factor.
+		double factor = 0.5;
+		// Adjustment factor adjustment.
+//		double factorChange = 0.998; // good for 1000
+		double factorChange = 0.9998; // good for 10000
+		
+		double maxAccuracy = 0.0;
+		double minAveRMSE = Double.MAX_VALUE;
+
 		// Loop through epochs.
 		for (int epoch = 0 ; epoch < maxEpochs ; epoch++) {
 			// Sum root mean square error. 
@@ -179,6 +203,80 @@ public class MainNN {
 			// Sum classification errors.
 			double sumClassError = 0.0;
 			
+			// Loop through training instances.
+			for (int ixTrain = 0 ; ixTrain < trainInputs.length ; ixTrain++) {
+				ClassifyOutput classifyOutput = neuralNetwork.classify(trainInputs[ixTrain], trainOutputs[ixTrain]);
+				sumRMSE = sumRMSE + classifyOutput.getRmsError();
+				maxRMSE = Math.max(maxRMSE, classifyOutput.getRmsError());
+				sumClassError = sumClassError + classifyOutput.getClassError();
+//				for (double output : classifyOutput.getOutput()) {
+//					System.out.print("[" + output + ']');
+//				}
+//				System.out.println();
+			}
+			
+			double avgRMSE = sumRMSE / trainInputs.length;
+			double accuracy = 1 - sumClassError / trainInputs.length;
+			System.out.println("Epoch " + epoch + ": maxRMSE: " + decFormat.format(maxRMSE) + ", aveRMSE: " + decFormat.format(avgRMSE) 
+								+ ", Acc: " + pctFormat.format(accuracy * 100) + '%');
+			
+			// Regress to previous neural network if error is higher.
+//			if (accuracy > prevAccuracy && !moveUphill(prevAccuracy, accuracy, ((double)maxEpochs - (double)epoch)/(double)maxEpochs * 1.0)) {
+			if (avgRMSE > prevAvgRMSE && !moveUphill(prevAvgRMSE, avgRMSE, ((double)maxEpochs - (double)epoch)/(double)maxEpochs * 1.0)) {
+				neuralNetwork = prevNeuralNetwork;
+				avgRMSE = prevAvgRMSE;
+				accuracy = prevAccuracy;
+			}
+			
+			// Save previous neural network.
+			try {
+				prevNeuralNetwork = neuralNetwork.clone();
+			}
+			catch (CloneNotSupportedException ex) {
+				ex.printStackTrace();
+			}
+			
+			// Save previous error for next comparison.
+			prevAvgRMSE = avgRMSE;
+			prevAccuracy = accuracy;
+			
+			if (epoch+1 < maxEpochs) {
+				// Update neural network neighborhood.
+				neuralNetwork.updateNeighborhood(factor);
+			}
+			
+			// Terminate if classification error is zero.
+			if (sumClassError == 0.0) {
+				System.out.println("Success");
+				break;
+			}
+			
+//			factor *= factorChange;
+			if (maxAccuracy < accuracy) {
+				maxAccuracy = accuracy;
+			}
+			if (minAveRMSE > avgRMSE) {
+				minAveRMSE = avgRMSE;
+			}
+		}
+		System.out.println("minAveRMSE: " + decFormat.format(minAveRMSE) + ", maxAccuracy: " + pctFormat.format(maxAccuracy * 100) + '%');
+	}
+	
+	private static boolean moveUphill(double prevAvgRMSE, double avgRMSE, double temp) {
+		double prob = Math.exp((prevAvgRMSE - avgRMSE) / temp);
+	//	System.out.println("prevAvgRMSE- " + prevAvgRMSE + "  avgRMSE- " + avgRMSE + "  temp- " + temp + "  prob- " + prob);
+		return Math.random() > prob;
+	}
+	
+	private void bp() {
+		// Loop through epochs.
+		for (int epoch = 0 ; epoch < maxEpochs ; epoch++) {
+			// Sum root mean square error. 
+			double sumRMSE = 0.0;
+			// Maximum root mean square error. 
+			double maxRMSE = 0.0;
+			// Sum classification errors.
+			double sumClassError = 0.0;
 			// Loop through training instances.
 			for (int ixTrain = 0 ; ixTrain < trainInputs.length ; ixTrain++) {
 				// Set neural network inputs.
@@ -196,15 +294,8 @@ public class MainNN {
 				System.out.println("Success");
 				break;
 			}
-			
-			try {
-				neuralNetwork = neuralNetwork.clone();
-			}
-			catch (CloneNotSupportedException ex) {
-				ex.printStackTrace();
-				neuralNetwork = null;
-			}
 		}
+
 	}
 
 	private NeuralNetwork buildNeuralNetwork(int numInputNodes, int numHiddenNodes, int numOutputNodes, boolean biasNodes) {
@@ -351,6 +442,10 @@ public class MainNN {
 		return neuralNetwork;
 	}
 
+	/**
+	 * Generate random weight between minWeight & maxWeight.
+	 * @return random weight
+	 */
 	private double getRandomWeight() {
 		return (maxWeight - minWeight) * Math.random() + minWeight;
 	}

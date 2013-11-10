@@ -88,7 +88,6 @@ public class NeuralNetwork {
 	public List<HiddenNode> getHiddenNodes(boolean withBias) {
 		if (withBias) {
 			return hiddenNodes;
-			
 		}
 		
 		List<HiddenNode> hiddenNodesNoBias = new ArrayList<HiddenNode>();
@@ -178,6 +177,7 @@ public class NeuralNetwork {
 		double sumErrorsSqu = 0.0;
 		// Number of discrete classification errors.
 		long sumDiscreteErrors = 0;
+		long sumActualOutput = 0;
 
 		double[] actualOutputs = new double[outputNodes.size()-1];
 		boolean first = true; int ix = 0;
@@ -192,13 +192,16 @@ public class NeuralNetwork {
 			// Apply sigmoid function to accumulated NETs.
 			outputNode.setOutput(1.0 / (1.0 + Math.exp(-1.0 * outputNode.getOutput())));
 			// Store output for return.
-			actualOutputs[ix] = outputNode.getOutput();
+			actualOutputs[ix] = outputNode.getFactoredOutput();
 			
 			// Accumulate square of error.
-			sumErrorsSqu = sumErrorsSqu + Math.pow(targetOutputs[ix] - actualOutputs[ix], 2);
+			sumErrorsSqu += Math.pow(targetOutputs[ix] - actualOutputs[ix], 2);
 			
 			// Accumulate discrete errors.
-			sumDiscreteErrors = sumDiscreteErrors + Math.abs((long)targetOutputs[ix] - Math.round(actualOutputs[ix]));
+//			sumDiscreteErrors += Math.abs((long)targetOutputs[ix] - Math.round(actualOutputs[ix]));
+			sumDiscreteErrors += (Math.abs((long)targetOutputs[ix] - Math.round(actualOutputs[ix])) > 0) ? 1 : 0; 
+			
+//			sumActualOutput += actualOutputs[ix];
 			
 			ix++;
 		}
@@ -207,7 +210,7 @@ public class NeuralNetwork {
 		double rmsError = Math.sqrt(sumErrorsSqu / (double)targetOutputs.length);
 		// Calculate classification error.
 		double classError = (double)sumDiscreteErrors / (double)targetOutputs.length;
-
+//		double classError = (double)sumDiscreteErrors / (double)sumActualOutput; //targetOutputs.length;
 		
 		return new ClassifyOutput(actualOutputs, rmsError, classError);
 	}
@@ -248,6 +251,147 @@ public class NeuralNetwork {
 		}
 	}
 	
+	private List<Napse> discInputToHiddenNapses = new ArrayList<Napse>();
+	private List<Napse> discHiddenToOutputNapses = new ArrayList<Napse>();
+	
+	/**
+	 * Updates the neighborhood (napse connections & weights) by factor.
+	 * @param updateFactor update factor.
+	 */
+	public void updateNeighborhood(double updateFactor) {
+		// Maps of nodes for resolving Napse connections.
+		Map<Double,InputNode> inputNodesMap = new HashMap<Double,InputNode>();
+		Map<Double,HiddenNode> hiddenNodesMap = new HashMap<Double,HiddenNode>();
+		Map<Double,OutputNode> outputNodesMap = new HashMap<Double,OutputNode>();
+		
+		// Loop through and input to hidden napses and alter layer connections & weights.
+		List<Napse> removedInputToHiddenNapses = new ArrayList<Napse>();
+		for (InputNode inputNode : inputNodes) {
+			// Place in map for indexing to resolve Napse connections.
+			inputNodesMap.put(inputNode.getId(), inputNode);
+			for (Napse napse : inputNode.getOutputNapses()) {
+				// Check whether to remove this napse.
+//				if (checkRandom(updateFactor)) {
+//					// Save for disconnection & possible use later.
+//					removedInputToHiddenNapses.add(napse);
+//				}
+//				else 
+				if (checkRandom(updateFactor)) {
+					// Update napse weight.
+					napse.setWeight(factorWeight(napse.getWeight(), updateFactor));
+				}
+			}
+		}
+		
+		// Loop through removed napses to disconnect and save for later use.
+		for (Napse napse : removedInputToHiddenNapses) {
+			// Remove from in node.
+			((InputNode)napse.getInNode()).getOutputNapses().remove(napse);
+			// Remove from out node.
+			((HiddenNode)napse.getOutNode()).getInputNapses().remove(napse);
+			// Save for potential rese later.
+			discInputToHiddenNapses.add(napse);
+		}
+
+		// Loop through and hidden to output napses and alter layer connections & weights.
+		List<Napse> removedHiddenToOutputNapses = new ArrayList<Napse>();
+		for (HiddenNode hiddenNode : hiddenNodes) {
+			// Place in map for indexing to resolve Napse connections.
+			hiddenNodesMap.put(hiddenNode.getId(), hiddenNode);
+			for (Napse napse : hiddenNode.getOutputNapses()) {
+				// Check whether to remove this napse.
+//				if (checkRandom(updateFactor)) {
+//					// Save for disconnection & possible use later.
+//					removedHiddenToOutputNapses.add(napse);
+//				}
+//				else 
+				if (checkRandom(updateFactor)) {
+					// Update napse weight.
+					napse.setWeight(factorWeight(napse.getWeight(), updateFactor));
+				}
+			}
+		}
+		
+//		// Loop through removed napses to disconnect and save for later use.
+//		for (Napse napse : removedHiddenToOutputNapses) {
+//			// Remove from in node.
+//			((HiddenNode)napse.getInNode()).getOutputNapses().remove(napse);
+//			// Remove from out node.
+//			((OutputNode)napse.getOutNode()).getInputNapses().remove(napse);
+//			// Save for potential rese later.
+//			discHiddenToOutputNapses.add(napse);
+//		}
+//
+//		// Loop through output nodes.
+//		for (OutputNode outputNode : outputNodes) {
+//			// Place in map for indexing to resolve Napse connections.
+//			outputNodesMap.put(outputNode.getId(), outputNode);
+//		}
+		
+		// Loop through previously removed input to hidden napses and check probability to add them back.
+//		List<Napse> reinstateNapses = new ArrayList<Napse>();
+//		for (Napse napse : discInputToHiddenNapses) {
+//			if (checkRandom(updateFactor)) {
+//				reinstateNapses.add(napse);
+//				// Update weights.
+//				napse.setWeight(factorWeight(napse.getWeight(), updateFactor));
+//				// Get current nodes to connect since they've since been cloned.
+//				InputNode inputNode = inputNodesMap.get(napse.getInNode().getId());
+//				HiddenNode hiddenNode = hiddenNodesMap.get(napse.getOutNode().getId());
+//				// Set napse to point at current nodes.
+//				napse.setInNode(inputNode);
+//				napse.setOutNode(hiddenNode);
+//				// Add napse to output of hidden node and input of output node.
+//				inputNode.getOutputNapses().add(napse);
+//				hiddenNode.getInputNapses().add(napse);
+//			}
+//		}
+//		discInputToHiddenNapses.removeAll(reinstateNapses);
+//		
+//		// Loop through previously removed hidden to output napses and check probability to add them back.
+//		reinstateNapses = new ArrayList<Napse>();
+//		for (Napse napse : discHiddenToOutputNapses) {
+//			if (checkRandom(updateFactor)) {
+//				reinstateNapses.add(napse);
+//				// Update weights.
+//				napse.setWeight(factorWeight(napse.getWeight(), updateFactor));
+//				// Get current nodes to connect since they've since been cloned.
+//				HiddenNode hiddenNode = hiddenNodesMap.get(napse.getInNode().getId());
+//				OutputNode outputNode = outputNodesMap.get(napse.getOutNode().getId());
+//				// Set napse to point at current nodes.
+//				napse.setInNode(hiddenNode);
+//				napse.setOutNode(outputNode);
+//				// Add napse to output of hidden node and input of output node.
+//				hiddenNode.getOutputNapses().add(napse);
+//				outputNode.getInputNapses().add(napse);
+//			}
+//		}
+//		discHiddenToOutputNapses.removeAll(reinstateNapses);
+	}
+	
+	/** 
+	 * Check for random occurrence.
+	 * @param probability chance of random occurrence.
+	 * @return indicator of occurrence.
+	 */
+	private static boolean checkRandom(double probability) {
+		return Math.random() < probability;
+	}
+	
+	/**
+	 * Generate random weight update from source & factor.
+	 * @param weight input weight.
+	 * @param factor update factor.
+	 * @return random weight
+	 */
+	private static double factorWeight(double weight, double factor) {
+//		return weight + 2 * factor * Math.random() - factor;
+		return weight + 2 * Math.random() - 1;
+	}
+	
+	/**
+	 * Represents the classification of a test instance.
+	 */
 	public static class ClassifyOutput {
 		/** Actual output. */
 		private double[] output;
@@ -326,7 +470,7 @@ public class NeuralNetwork {
 		}
 		clone.setHiddenNodes(hiddenNodesClone);
 		
-		// Clone input nodes.
+		// Clone output nodes.
 		List<OutputNode> outputNodesClone = new ArrayList<OutputNode>();
 		for (OutputNode outputNode : outputNodes) {
 			OutputNode outputNodeClone = outputNode.clone();
@@ -381,7 +525,69 @@ public class NeuralNetwork {
 			}
 		}
 		
+		// Retain disconnected nodes.
+		clone.discInputToHiddenNapses = discInputToHiddenNapses;
+		clone.discHiddenToOutputNapses = discHiddenToOutputNapses;
+
 		return clone;
+	}
+
+	/**
+	 * Hash code for this neural network (incomplete).
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((hiddenNodes == null) ? 0 : hiddenNodes.hashCode());
+		result = prime * result
+				+ ((inputNodes == null) ? 0 : inputNodes.hashCode());
+		result = prime * result
+				+ ((outputNodes == null) ? 0 : outputNodes.hashCode());
+		return result;
+	}
+
+	/**
+	 * Compares equivalence.
+	 * @param obj to compare.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		NeuralNetwork other = (NeuralNetwork) obj;
+		if (hiddenNodes == null) {
+			if (other.hiddenNodes != null)
+				return false;
+		}		
+		if (inputNodes == null) {
+			if (other.inputNodes != null)
+				return false;
+		} 
+		if (outputNodes == null) {
+			if (other.outputNodes != null)
+				return false;
+		}
+		
+		// Confirm input nodes exist in other.
+		if (!(other.inputNodes.containsAll(inputNodes) || inputNodes.containsAll(other.inputNodes))) {
+			return false;
+		}
+		// Confirm hidden nodes exist in other.
+		if (!(other.hiddenNodes.containsAll(hiddenNodes) || hiddenNodes.containsAll(other.hiddenNodes))) {
+			return false;
+		}
+		// Confirm output nodes exist in other.
+		if (!(other.outputNodes.containsAll(outputNodes) || outputNodes.containsAll(other.outputNodes))) {
+			return false;
+		}
+		
+		return true;
 	}
 
 }
