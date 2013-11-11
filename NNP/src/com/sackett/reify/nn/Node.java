@@ -17,6 +17,8 @@
 */
 package com.sackett.reify.nn;
 
+import java.util.List;
+
 
 /** 
  * This represents a node in a neural network. 
@@ -72,6 +74,18 @@ public abstract class Node {
 		this.bias = bias;
 	}
 
+	/**
+	 * Return the outgoing napse connections. 
+	 * @return the outputNapses
+	 */
+	public abstract List<Napse> getOutputNapses();
+	
+	/**
+	 * Return the inbound napse connections. 
+	 * @return the inputNapses
+	 */
+	public abstract List<Napse> getInputNapses();
+	
 	/**
 	 * @return the id
 	 */

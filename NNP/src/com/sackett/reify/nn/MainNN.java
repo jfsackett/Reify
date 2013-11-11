@@ -31,9 +31,9 @@ import com.sackett.reify.nn.NeuralNetwork.ClassifyOutput;
 /**
  * This executes an artificial neural network. 
  * Parameter suggestions:
- *  xor.csv 2 1 5 0 1000 0.1 0.0 -1.0 1.0 false
- * 	iris.csv 4 3 5 0 1000 0.1 0.0 -1.0 1.0 false
- * 	pallet.csv 2 10 40 0 1000 0.001 0.0 -1.0 1.0 true
+ *  xor.csv 2 1 3 0 10000 1.0 0.0 -1.0 1.0 false
+ * 	iris.csv 4 3 5 0 10000 0.1 0.0 -1.0 1.0 false
+ * 	pallet.csv 2 10 7 0 1000 0.001 0.0 -1.0 1.0 true
  * @author Joseph Sackett
  */
 public class MainNN {
@@ -72,7 +72,6 @@ public class MainNN {
 
 	/** Main program for neural network test. */
 	public static void main(String[] args) {
-		//TODO Process command line parameters.
 		String inputFileName = null;
 		int numInputNodes = 0;
 		int numOutputNodes = 0;
@@ -181,12 +180,16 @@ public class MainNN {
 	private void sa() {
 		// Previous neural network.
 		NeuralNetwork prevNeuralNetwork = null;
-		// Previous epoch error.
+		// Previous epoch average error.
 		double prevAvgRMSE = Double.MAX_VALUE;
-		// Previous epoch error.
+		// Previous epoch maximum error.
+		double prevMaxRMSE = Double.MAX_VALUE;
+		// Previous epoch accuracy.
 		double prevAccuracy = Double.MAX_VALUE;
-		// Adjustment factor.
-		double factor = 0.5;
+		// Update probability.
+		double updateProb = 0.5;
+		// Weight adjustment factor.
+		double weightFactor = 0.2;
 		// Adjustment factor adjustment.
 //		double factorChange = 0.998; // good for 1000
 		double factorChange = 0.9998; // good for 10000
@@ -219,12 +222,16 @@ public class MainNN {
 			double accuracy = 1 - sumClassError / trainInputs.length;
 			System.out.println("Epoch " + epoch + ": maxRMSE: " + decFormat.format(maxRMSE) + ", aveRMSE: " + decFormat.format(avgRMSE) 
 								+ ", Acc: " + pctFormat.format(accuracy * 100) + '%');
-			
+//if (avgRMSE == .25) {
+//	System.out.println(neuralNetwork);
+//	System.out.println();
+//}
 			// Regress to previous neural network if error is higher.
 //			if (accuracy > prevAccuracy && !moveUphill(prevAccuracy, accuracy, ((double)maxEpochs - (double)epoch)/(double)maxEpochs * 1.0)) {
-			if (avgRMSE > prevAvgRMSE && !moveUphill(prevAvgRMSE, avgRMSE, ((double)maxEpochs - (double)epoch)/(double)maxEpochs * 1.0)) {
+			if (avgRMSE > prevAvgRMSE && !moveUphill(prevAvgRMSE, avgRMSE, prevMaxRMSE, maxRMSE, ((double)maxEpochs - (double)epoch)/(double)maxEpochs * .006 + .002)) {
 				neuralNetwork = prevNeuralNetwork;
 				avgRMSE = prevAvgRMSE;
+				maxRMSE = prevMaxRMSE;
 				accuracy = prevAccuracy;
 			}
 			
@@ -238,11 +245,12 @@ public class MainNN {
 			
 			// Save previous error for next comparison.
 			prevAvgRMSE = avgRMSE;
+			prevMaxRMSE = maxRMSE;
 			prevAccuracy = accuracy;
 			
 			if (epoch+1 < maxEpochs) {
 				// Update neural network neighborhood.
-				neuralNetwork.updateNeighborhood(factor);
+				neuralNetwork.updateNeighborhood(updateProb, weightFactor);
 			}
 			
 			// Terminate if classification error is zero.
@@ -251,7 +259,7 @@ public class MainNN {
 				break;
 			}
 			
-//			factor *= factorChange;
+//			weightFactor *= factorChange;
 			if (maxAccuracy < accuracy) {
 				maxAccuracy = accuracy;
 			}
@@ -259,13 +267,24 @@ public class MainNN {
 				minAveRMSE = avgRMSE;
 			}
 		}
+		System.out.println(neuralNetwork);
 		System.out.println("minAveRMSE: " + decFormat.format(minAveRMSE) + ", maxAccuracy: " + pctFormat.format(maxAccuracy * 100) + '%');
 	}
 	
-	private static boolean moveUphill(double prevAvgRMSE, double avgRMSE, double temp) {
-		double prob = Math.exp((prevAvgRMSE - avgRMSE) / temp);
-	//	System.out.println("prevAvgRMSE- " + prevAvgRMSE + "  avgRMSE- " + avgRMSE + "  temp- " + temp + "  prob- " + prob);
-		return Math.random() > prob;
+	private static boolean moveUphill(double prevAvgRMSE, double avgRMSE, double prevMaxRMSE, double maxRMSE, double temp) {
+		double adjPrevAvgRMSE = prevAvgRMSE + prevMaxRMSE / 100;
+		double adjAvgRMSE = avgRMSE + maxRMSE / 100;
+//		double adjPrevAvgRMSE = prevAvgRMSE;
+//		double adjAvgRMSE = avgRMSE;
+//		if (avgRMSE - prevAvgRMSE < .003) {
+//			return maxRMSE > prevMaxRMSE; 
+//		}
+//		double prob = Math.exp((prevAvgRMSE - avgRMSE) / temp);
+		double prob = Math.exp((adjPrevAvgRMSE - adjAvgRMSE) / temp);
+		double random = Math.random();
+//		System.out.println(((prob > random) ? "UP" : "  ") + "  prob- " + decFormat.format(prob) + "  random- " + decFormat.format(random) + "  prevAvgRMSE- " + decFormat.format(prevAvgRMSE) + "  avgRMSE- " + decFormat.format(avgRMSE) + "  temp- " + temp);
+		System.out.println(((prob > random) ? "UP" : "  ") + "  prob- " + decFormat.format(prob) + "  random- " + decFormat.format(random) + "  prevAvgRMSE- " + decFormat.format(adjPrevAvgRMSE) + "  avgRMSE- " + decFormat.format(adjAvgRMSE) + "  temp- " + temp);
+		return prob > random ;
 	}
 	
 	private void bp() {
@@ -295,6 +314,7 @@ public class MainNN {
 				break;
 			}
 		}
+		System.out.println(neuralNetwork);
 
 	}
 
@@ -377,6 +397,9 @@ public class MainNN {
 		List<InputNode> inputNodes = new ArrayList<InputNode>(numInputNodes + 1);
 		List<HiddenNode> hiddenNodes = new ArrayList<HiddenNode>(numHiddenNodes + 1);
 		List<OutputNode> outputNodes = new ArrayList<OutputNode>(numOutputNodes + 1);
+		// Intermediate hidden layers between first hidden later and output nodes.
+		List<HiddenNode> hiddenNodesA = new ArrayList<HiddenNode>(numHiddenNodes + 1);
+		List<HiddenNode> hiddenNodesB = new ArrayList<HiddenNode>(numHiddenNodes + 1);
 		
 		// Build input nodes (at 1..numInputNodes). Includes optionally used bias node at index 0.
 		inputNodes.add(new InputNode(1.0, true));
@@ -390,7 +413,19 @@ public class MainNN {
 			hiddenNodes.add(new HiddenNode());
 		}
 		
-		// Build input nodes (at 1..numOutputNodes). Includes unused node at index 0 for consistency.
+		// Build intermediate A hidden nodes (at 1..numHiddenNodes). Includes optionally used bias node at index 0.
+		hiddenNodesA.add(new HiddenNode(1.0, true));
+		for (int ix = 1 ; ix <= numHiddenNodes ; ix++) {
+			hiddenNodesA.add(new HiddenNode());
+		}
+		
+		// Build intermediate B hidden nodes (at 1..numHiddenNodes). Includes optionally used bias node at index 0.
+		hiddenNodesB.add(new HiddenNode(1.0, true));
+		for (int ix = 1 ; ix <= numHiddenNodes ; ix++) {
+			hiddenNodesB.add(new HiddenNode());
+		}
+		
+		// Build output nodes (at 1..numOutputNodes). Includes unused node at index 0 for consistency.
 		outputNodes.add(new OutputNode(true));
 		for (int ix = 1 ; ix <= numOutputNodes ; ix++) {
 			outputNodes.add(new FactoredOutputNode((ix < 6) ? 9.0 : 4.0, false));
@@ -415,6 +450,80 @@ public class MainNN {
 			}
 		}
 		
+		// Add synapse from hidden to hiddenA & hiddenB layers.
+		for (HiddenNode hiddenNode : hiddenNodes) {
+			// If not using bias nodes, skip adding synapses to bias node.
+			if (!biasNodes && hiddenNode.isBias()) {
+				continue;
+			}
+			for (HiddenNode hiddenNodeA : hiddenNodesA) {
+				// Skip adding synapses to bias node.
+				if (hiddenNodeA.isBias()) {
+					continue;
+				}
+				// Create synapse.
+				Napse napse = new Napse(hiddenNode, hiddenNodeA, getRandomWeight());
+				// Add to both of its ends.
+				hiddenNode.getOutputNapses().add(napse);
+				hiddenNodeA.getInputNapses().add(napse);
+			}
+			for (HiddenNode hiddenNodeB : hiddenNodesB) {
+				// Skip adding synapses to bias node.
+				if (hiddenNodeB.isBias()) {
+					continue;
+				}
+				// Create synapse.
+				Napse napse = new Napse(hiddenNode, hiddenNodeB, getRandomWeight());
+				// Add to both of its ends.
+				hiddenNode.getOutputNapses().add(napse);
+				hiddenNodeB.getInputNapses().add(napse);
+			}
+		}
+		
+		// Add synapse between hiddenA & first 5 nodes of output layers.
+		for (HiddenNode hiddenNodeA : hiddenNodesA) {
+			// If not using bias nodes, skip adding synapses to bias node.
+			if (!biasNodes && hiddenNodeA.isBias()) {
+				continue;
+			}
+			int ix = 0;
+			for (OutputNode outputNode : outputNodes) {
+				// Skip adding synapses to bias node.
+				if (outputNode.isBias()) {
+					continue;
+				}
+				// Create synapse.
+				Napse napse = new Napse(hiddenNodeA, outputNode, getRandomWeight());
+				// Add to both of its ends.
+				hiddenNodeA.getOutputNapses().add(napse);
+				outputNode.getInputNapses().add(napse);
+				
+				if (++ix >= 5) {
+					break;
+				}
+			}
+		}
+		
+		// Add synapse between hiddenB & last 5 nodes of output layers.
+		for (HiddenNode hiddenNodeB : hiddenNodesB) {
+			// If not using bias nodes, skip adding synapses to bias node.
+			if (!biasNodes && hiddenNodeB.isBias()) {
+				continue;
+			}
+			int ix = 0;
+			for (OutputNode outputNode : outputNodes) {
+				// Skip adding synapses to bias node.
+				if (outputNode.isBias() || ++ix <= 5) {
+					continue;
+				}
+				// Create synapse.
+				Napse napse = new Napse(hiddenNodeB, outputNode, getRandomWeight());
+				// Add to both of its ends.
+				hiddenNodeB.getOutputNapses().add(napse);
+				outputNode.getInputNapses().add(napse);				
+			}			
+		}
+/*		
 		// Add synapse between hidden & output layers.
 		for (HiddenNode hiddenNode : hiddenNodes) {
 			// If not using bias nodes, skip adding synapses to bias node.
@@ -433,10 +542,16 @@ public class MainNN {
 				outputNode.getInputNapses().add(napse);
 			}
 		}
+*/
+		List<HiddenNode> allHiddenNodes = new ArrayList<HiddenNode>();
+		allHiddenNodes.addAll(hiddenNodes);
+		allHiddenNodes.addAll(hiddenNodesA);
+		allHiddenNodes.addAll(hiddenNodesB);
 		
 		// Add input, hidden and output layers to neural network.
 		neuralNetwork.setInputNodes(inputNodes);
-		neuralNetwork.setHiddenNodes(hiddenNodes);
+//		neuralNetwork.setHiddenNodes(hiddenNodes);
+		neuralNetwork.setHiddenNodes(allHiddenNodes);
 		neuralNetwork.setOutputNodes(outputNodes);
 		
 		return neuralNetwork;

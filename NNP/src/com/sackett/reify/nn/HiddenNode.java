@@ -92,4 +92,19 @@ public class HiddenNode extends Node {
 		return hiddenNodeClone;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("HiddenNode [");
+		for (Napse outputNapse : outputNapses) {
+			builder.append(outputNapse);
+		}
+		builder.append("]");
+		
+		return builder.toString();
+	}
+
 }

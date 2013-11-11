@@ -54,8 +54,18 @@ public class OutputNode extends Node {
 	/**
 	 * @return the inputNapses
 	 */
+	@Override
 	public List<Napse> getInputNapses() {
 		return inputNapses;
+	}
+	
+	/**
+	 * No-op because output nodes do not have outputs.
+	 * @return null
+	 */
+	@Override
+	public List<Napse> getOutputNapses() {
+		return null;
 	}
 	
 	/**

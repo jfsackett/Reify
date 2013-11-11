@@ -56,10 +56,20 @@ public class InputNode extends Node {
 	/**
 	 * @return the outputNapses
 	 */
+	@Override
 	public List<Napse> getOutputNapses() {
 		return outputNapses;
 	}
 
+	/**
+	 * No-op because input nodes do not have inputs.
+	 * @return null
+	 */
+	@Override
+	public List<Napse> getInputNapses() {
+		return null;
+	}
+	
 	/** 
 	 * Clone this input node but leave its Napses empty.
 	 * @return input node clone.
@@ -70,6 +80,21 @@ public class InputNode extends Node {
 		inputNodeClone.error = this.error;
 
 		return inputNodeClone;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("InputNode [");
+		for (Napse outputNapse : outputNapses) {
+			builder.append(outputNapse);
+		}
+		builder.append("]");
+		
+		return builder.toString();
 	}
 
 }

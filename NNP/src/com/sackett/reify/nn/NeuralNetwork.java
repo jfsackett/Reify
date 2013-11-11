@@ -17,6 +17,7 @@
 */
 package com.sackett.reify.nn;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -128,6 +129,8 @@ public class NeuralNetwork {
 	public void setOutputNodes(List<OutputNode> outputNodes) {
 		this.outputNodes = outputNodes;
 	}
+
+	private static DecimalFormat decFormat = new DecimalFormat("#.#####");
 	
 	/**
 	 * Initializes the input values and classifies the instance by calculating all node values, including outputs and errors. 
@@ -199,12 +202,21 @@ public class NeuralNetwork {
 			
 			// Accumulate discrete errors.
 //			sumDiscreteErrors += Math.abs((long)targetOutputs[ix] - Math.round(actualOutputs[ix]));
-			sumDiscreteErrors += (Math.abs((long)targetOutputs[ix] - Math.round(actualOutputs[ix])) > 0) ? 1 : 0; 
+			long discreteError = Math.abs((long)targetOutputs[ix] - Math.round(actualOutputs[ix]));
+//			if (discreteError > 0) {
+//				System.out.print("E: ");
+//			}
+			sumDiscreteErrors += (discreteError > 0) ? 1 : 0; 
 			
 //			sumActualOutput += actualOutputs[ix];
 			
 			ix++;
 		}
+		
+//		for (int ixx = 0 ; ixx < actualOutputs.length ; ixx++) {
+//			System.out.print("Actual: [" + decFormat.format(Math.round(actualOutputs[ixx])) + "] Target: [" + decFormat.format(targetOutputs[ixx]) + "]  ");
+//		}
+//		System.out.println();
 		
 		// Calculate root mean square error.
 		double rmsError = Math.sqrt(sumErrorsSqu / (double)targetOutputs.length);
@@ -256,9 +268,10 @@ public class NeuralNetwork {
 	
 	/**
 	 * Updates the neighborhood (napse connections & weights) by factor.
-	 * @param updateFactor update factor.
+	 * @param updateFactor update probability.
+	 * @param weightFactor range to update weight.
 	 */
-	public void updateNeighborhood(double updateFactor) {
+	public void updateNeighborhood(double updateProb, double weightFactor) {
 		// Maps of nodes for resolving Napse connections.
 		Map<Double,InputNode> inputNodesMap = new HashMap<Double,InputNode>();
 		Map<Double,HiddenNode> hiddenNodesMap = new HashMap<Double,HiddenNode>();
@@ -276,9 +289,9 @@ public class NeuralNetwork {
 //					removedInputToHiddenNapses.add(napse);
 //				}
 //				else 
-				if (checkRandom(updateFactor)) {
+				if (checkRandom(updateProb)) {
 					// Update napse weight.
-					napse.setWeight(factorWeight(napse.getWeight(), updateFactor));
+					napse.setWeight(factorWeight(napse.getWeight(), weightFactor));
 				}
 			}
 		}
@@ -305,9 +318,9 @@ public class NeuralNetwork {
 //					removedHiddenToOutputNapses.add(napse);
 //				}
 //				else 
-				if (checkRandom(updateFactor)) {
+				if (checkRandom(updateProb)) {
 					// Update napse weight.
-					napse.setWeight(factorWeight(napse.getWeight(), updateFactor));
+					napse.setWeight(factorWeight(napse.getWeight(), weightFactor));
 				}
 			}
 		}
@@ -385,8 +398,8 @@ public class NeuralNetwork {
 	 * @return random weight
 	 */
 	private static double factorWeight(double weight, double factor) {
-//		return weight + 2 * factor * Math.random() - factor;
-		return weight + 2 * Math.random() - 1;
+		return weight + 2 * factor * Math.random() - factor;
+//		return weight + 2 * Math.random() - 1;
 	}
 	
 	/**
@@ -510,7 +523,10 @@ public class NeuralNetwork {
 			List<Napse> napses = hiddenNode.getOutputNapses();
 			for (Napse napse : napses) {
 				// Get connected, cloned output node from map.
-				OutputNode outputNodeClone = outputNodesCloneMap.get(napse.getOutNode().getId());
+				Node outputNodeClone = outputNodesCloneMap.get(napse.getOutNode().getId());
+				if (outputNodeClone == null) {
+					outputNodeClone = hiddenNodesCloneMap.get(napse.getOutNode().getId());
+				}
 				
 				// Clone napse.
 				Napse napseClone = napse.clone();
@@ -588,6 +604,27 @@ public class NeuralNetwork {
 		}
 		
 		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("NeuralNetwork [\ninputNodes=\n");
+		for (InputNode inputNode : inputNodes) {
+			builder.append(inputNode);
+			builder.append("\n");
+		}
+		builder.append("hiddenNodes=\n");
+		for (HiddenNode hiddenNode : hiddenNodes) {
+			builder.append(hiddenNode);
+			builder.append("\n");
+		}
+		builder.append("]");
+
+		return builder.toString();
 	}
 
 }

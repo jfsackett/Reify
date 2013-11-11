@@ -17,6 +17,8 @@
 */
 package com.sackett.reify.nn;
 
+import java.text.DecimalFormat;
+
 /** 
  * This represents a synapse between two nodes in neural network.
  * @author Joseph Sackett
@@ -136,6 +138,16 @@ public class Napse {
 		} else if (!outNode.equals(other.outNode))
 			return false;
 		return true;
+	}
+
+	private static DecimalFormat decFormat = new DecimalFormat("#.######");
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "[" + decFormat.format(weight) + " -> " + decFormat.format(outNode.getId()) + "]";
 	}
 
 }
