@@ -70,8 +70,45 @@ public class Bin implements BinPackingElement {
 		addItem(item, binSpace.getxOffset(), binSpace.getRightWall());
 	}
 	
+	/** Build and return the bin's SpaceMap. */
+	public SpaceMap getSpaceMap() {
+		return new SpaceMap();
+	}
+	
 	/** Visitor accept method. */
 	public void accept(BinPackingElementVisitor visitor) {
 		visitor.visit(this);
+	}
+
+
+	/**
+	 * Map to determine available free space.
+	 */
+	public class SpaceMap implements BinPackingElement {
+		/** Map of filled area. */
+		private boolean[][] fillBits;
+		
+		public SpaceMap() {
+			fillBits = new boolean[width][length];
+			for (PackedItem packedItem : packedItems) {
+				for (int y = packedItem.getyOffset(); y < packedItem.getyOffset() + packedItem.getItem().getWidth(); y++) {
+					for (int x = packedItem.getxOffset(); x < packedItem.getxOffset() + packedItem.getItem().getLength(); x++) {
+						fillBits[y][x] = true;
+					}
+				}
+			}
+		}
+
+		/**
+		 * @return the fillBits
+		 */
+		public boolean[][] getFillBits() {
+			return fillBits;
+		}
+
+		/** Visitor accept method. */
+		public void accept(BinPackingElementVisitor visitor) {
+			visitor.visit(this);
+		}
 	}
 }

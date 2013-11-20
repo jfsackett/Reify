@@ -1,8 +1,10 @@
 package com.sackett.reify.bp.view;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 
 import com.sackett.reify.bp.Bin;
+import com.sackett.reify.bp.Bin.SpaceMap;
 import com.sackett.reify.bp.BinPackingElementVisitor;
 import com.sackett.reify.bp.Item;
 import com.sackett.reify.bp.PackedItem;
@@ -17,15 +19,20 @@ public class BPGraphicsRenderer implements BinPackingElementVisitor {
 	/** Drawing Y offset. */
 	private int yOffset;
 	
-	public BPGraphicsRenderer(Graphics2D graphics, int xOffset, int yOffset, int yHeight) {
+	/** Height of the panel. */
+	private int panelHeight;
+	
+	public BPGraphicsRenderer(Graphics2D graphics, int xOffset, int yOffset, int panelHeight) {
 		this.graphics = graphics;
 		this.xOffset = xOffset;
 		this.yOffset = yOffset;
+		this.panelHeight = panelHeight;
 	}
 
 	/** Visit a Bin. */
 	public void visit(Bin bin) {
-		ShapeNormalizer normalizer = new ShapeNormalizer(600, 500, yOffset, xOffset, bin.getLength(), bin.getWidth());
+		ShapeNormalizer normalizer = new ShapeNormalizer(panelHeight, yOffset, xOffset, bin.getLength(), bin.getWidth());
+		graphics.setColor(Color.black);
 		graphics.drawRect(normalizer.getULXOffset(), normalizer.getULYOffset(), normalizer.getWidth(), normalizer.getLength());
 		// Visit items packed in bin.
 		for (PackedItem packedItem : bin.getPackedItems()) {
@@ -35,27 +42,36 @@ public class BPGraphicsRenderer implements BinPackingElementVisitor {
 
 	/** Visit a Packed Item. */
 	public void visit(PackedItem packedItem) {
-		ShapeNormalizer normalizer = new ShapeNormalizer(600, 500, yOffset + packedItem.getxOffset(), xOffset + packedItem.getyOffset(), packedItem.getItem().getLength(), packedItem.getItem().getWidth());
-		graphics.drawRect(normalizer.getULXOffset(), normalizer.getULYOffset(), normalizer.getWidth(), normalizer.getLength());
+		ShapeNormalizer normalizer = new ShapeNormalizer(panelHeight, yOffset + packedItem.getxOffset(), xOffset + packedItem.getyOffset(), packedItem.getItem().getLength(), packedItem.getItem().getWidth());
+		graphics.setColor(new Color(packedItem.getItem().getId()));
+		graphics.fillRect(normalizer.getULXOffset(), normalizer.getULYOffset(), normalizer.getWidth(), normalizer.getLength());
 	}
 
 	/** Visit an Item. */
 	public void visit(Item item) {
-		graphics.drawRect(xOffset, yOffset, item.getWidth(), item.getLength());
+//		graphics.setColor(new Color(item.getId()));
+//		graphics.fillRect(xOffset, yOffset, item.getWidth(), item.getLength());
 	}
-	
+
+	/** Visit a SpaceMap. */
+	public void visit(SpaceMap spaceMap) {
+		boolean[][] fillBits = spaceMap.getFillBits();
+		for (int y = 0; y < fillBits.length; y++) {
+			for (int x = 0; x < fillBits[y].length; x++) {
+				graphics.setColor((fillBits[y][x]) ? Color.black : Color.white);
+				graphics.drawLine(x + xOffset, panelHeight - yOffset - y, x + xOffset, panelHeight - yOffset - y);
+			}
+		}
+	}	
 	
 	private static class ShapeNormalizer {
-		/** Panel width. */
-		private int panelWidth;
-		
 		/** Panel length. */
 		private int panelHeight;
 		
 		/** Lower left X offset. */
 		private int xOffset;
 		
-		/** Lower left Y offeet. */
+		/** Lower left Y offset. */
 		private int yOffset;
 		
 		/** Shape Width. */
@@ -64,8 +80,7 @@ public class BPGraphicsRenderer implements BinPackingElementVisitor {
 		/** Shape Length. */
 		private int length;
 
-		public ShapeNormalizer(int panelWidth, int panelHeight, int xOffset, int yOffset, int width, int length) {
-			this.panelWidth = panelWidth;
+		public ShapeNormalizer(int panelHeight, int xOffset, int yOffset, int width, int length) {
 			this.panelHeight = panelHeight;
 			this.xOffset = xOffset;
 			this.yOffset = yOffset;

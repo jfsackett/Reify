@@ -25,7 +25,7 @@ public class BPSurface extends JPanel {
 
 	private void doDrawing(Graphics graphics) {
         Graphics2D graphics2d = (Graphics2D) graphics;
-    	BPGraphicsRenderer bpGraphicsRenderer = new BPGraphicsRenderer(graphics2d, 50, 50, 400);
+    	BPGraphicsRenderer bpGraphicsRenderer = new BPGraphicsRenderer(graphics2d, 50, 50, this.getHeight());
 
     	bpGraphicsRenderer.visit(bin);
     } 
