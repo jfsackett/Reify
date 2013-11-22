@@ -40,6 +40,9 @@ public class BinSpace {
 	/** Height of right wall with packed items. */
 	private int rightWall;
 
+	public BinSpace() {
+	}
+
 	public BinSpace(int xOffset, int yOffset, int length, int width, int leftWall, int rightWall) {
 		this.xOffset = xOffset;
 		this.yOffset = yOffset;
@@ -49,6 +52,16 @@ public class BinSpace {
 		this.rightWall = rightWall;
 	}
 
+	/**
+	 * Determines whether a point inside this space.
+	 * @param x x coordinate of point.
+	 * @param y y coordinate of point.
+	 * @return true if contained, false otherwise.
+	 */
+	public boolean contains(int x, int y) {
+		return xOffset <= x && x <= xOffset + length && yOffset <= y && y <= yOffset + width;
+	}
+	
 	/**
 	 * @return the xOffset
 	 */
@@ -89,6 +102,16 @@ public class BinSpace {
 	 */
 	public int getRightWall() {
 		return rightWall;
+	}
+
+	/**
+	 * @return string representation of this BinSpace.
+	 */
+	@Override
+	public String toString() {
+		return "BinSpace [xOffset=" + xOffset + ", yOffset=" + yOffset
+				+ ", length=" + length + ", width=" + width + ", leftWall="
+				+ leftWall + ", rightWall=" + rightWall + "]";
 	}
 		
 }

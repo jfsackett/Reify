@@ -40,6 +40,98 @@ public class Bin implements BinPackingElement {
 	}
 
 	/**
+	 * This accepts the prior bin space and returns the next available space.
+	 * @param binSpace prior bin space or null to start.
+	 * @return the net available bin space.
+	 */
+	public BinSpace findNextSpace(BinSpace binSpace) {
+		// Get current map of bin.
+		SpaceMap spaceMap = new SpaceMap();
+		// Get map of bits (true = filled, false = available).
+		boolean[][] fillBits = spaceMap.getFillBits();
+		
+		int xOffset = 0, yOffset = 0;
+		// Set to bit after last space.
+		if (binSpace != null) {
+			xOffset = binSpace.getxOffset() + binSpace.getLength();
+			yOffset = binSpace.getyOffset();
+		}
+		
+		// Find starting point.
+		while(true) {
+			// Increase xOffset until it runs out of bin, then increment yOffset & reset xOffset.
+			if (xOffset >= length) {
+				yOffset++;
+				xOffset = 0;
+				if (yOffset >= width) {
+					// When yOffset runs out of bin, there is no more space.
+					return null;
+				}
+			}
+			
+			// Found free space when not filled and not in input binSpace.
+			if (!fillBits[yOffset][xOffset] && !(binSpace != null && binSpace.contains(xOffset, yOffset))) {
+				break;
+			}
+			xOffset++;
+		}
+		
+		// Find length.
+		int xExtent;
+		for (xExtent = xOffset; xExtent < length; xExtent++) {
+			// Stop when occupied bit encountered.
+			if (fillBits[yOffset][xExtent]) { 
+				break;
+			}
+		}
+		
+		// Find width.
+		int yExtent;
+		for (yExtent = yOffset; yExtent < width; yExtent++) {
+			// Stop when occupied bit encountered.
+			if (fillBits[yExtent][xOffset]) { 
+				break;
+			}
+		}
+		
+		// Find left wall height.
+		int leftWall;
+		// If at left wall, use remaining bin edge.
+		if (xOffset == 0) {
+			leftWall = width - yOffset;
+		}
+		else {
+			// Loop up Item to the left until it ends.
+			int xWall = xOffset - 1;
+			for (leftWall = yOffset; leftWall < width; leftWall++) {
+				if (!fillBits[leftWall][xWall]) { 
+					break;
+				}
+			}
+			leftWall = leftWall - yOffset;
+		}
+		
+		// Find right wall height.
+		int rightWall;
+		// If at right wall, use remaining bin edge.
+		if (xExtent == length) {
+			rightWall = width - yOffset;
+		}
+		else {
+			// Loop up Item to the right until it ends.
+			int xWall = xExtent + 1;
+			for (rightWall = yOffset; rightWall < width; rightWall++) {
+				if (!fillBits[rightWall][xWall]) { 
+					break;
+				}
+			}
+			rightWall = rightWall - yOffset;
+		}
+		
+		return new BinSpace(xOffset, yOffset, xExtent - xOffset, yExtent - yOffset, leftWall, rightWall);
+	}
+	
+	/**
 	 * @return the length
 	 */
 	public int getLength() {
@@ -66,8 +158,8 @@ public class Bin implements BinPackingElement {
 	}
 
 	/** Add an item to this bin in the bin space. */
-	public void addItem(Item item, BinSpace binSpace) {
-		addItem(item, binSpace.getxOffset(), binSpace.getRightWall());
+	public void addItem(Item item, BinSpace binSpace, boolean leftWall) {
+		addItem(item, (leftWall) ? binSpace.getxOffset() : binSpace.getxOffset() + binSpace.getLength() - item.getLength(), binSpace.getyOffset());
 	}
 	
 	/** Build and return the bin's SpaceMap. */
@@ -79,7 +171,6 @@ public class Bin implements BinPackingElement {
 	public void accept(BinPackingElementVisitor visitor) {
 		visitor.visit(this);
 	}
-
 
 	/**
 	 * Map to determine available free space.
@@ -100,6 +191,7 @@ public class Bin implements BinPackingElement {
 		}
 
 		/**
+		 * Get map of bits (true = filled, false = available).
 		 * @return the fillBits
 		 */
 		public boolean[][] getFillBits() {

@@ -17,6 +17,7 @@
 */
 package com.sackett.reify.bp;
 
+/** Interface for visiting bin packing elements. Part of the visitor pattern. */
 public interface BinPackingElement {
 	/** Visitor accept method. */
 	public void accept(BinPackingElementVisitor visitor);

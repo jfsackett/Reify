@@ -50,6 +50,46 @@ public class Item {
 		this.length = length;
 		this.width = width;
 	}
+	
+	/**
+	 * Calculate this item's fitness for input space.
+	 * @param binSpace space for which fitness calculated.
+	 * @return fitness [-1 - 4].
+	 */
+	public int fitnessForSpace(BinSpace binSpace) {
+		int wall;
+		// Fit to taller wall.
+		if (binSpace.getLeftWall() >= binSpace.getRightWall()) {
+			wall = binSpace.getLeftWall();
+		}
+		else {
+			wall = binSpace.getRightWall();
+		}
+		
+		if (binSpace.getLength() == length && wall == width) {
+			// Item's length & width fit perfectly.
+			return 4;
+		}
+		else if (binSpace.getLength() == length && wall < width && binSpace.getWidth() >= width) {
+			// Item's length fits perfectly; wider than wall width but less than full width of space.
+			return 3;
+		}
+		else if (binSpace.getLength() == length && wall > width) {
+			// Item's length fits perfectly; narrower than wall width.
+			return 2;
+		}
+		else if (binSpace.getLength() > length && wall == width) {
+			// Item's length shorter than space; width fits perfectly. 
+			return 1;
+		}
+		else if (binSpace.getLength() > length && binSpace.getWidth() >= width) {
+			// Item's length shorter than space; width less than full width of space. 
+			return 0;
+		}
+
+		// Does not fit.
+		return -1;
+	}
 
 	/**
 	 * @return the id
@@ -76,4 +116,43 @@ public class Item {
 	public void accept(BinPackingElementVisitor visitor) {
 		visitor.visit(this);
 	}
+
+	/**
+	 * @return Item's hash code.
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + id;
+		return result;
+	}
+
+	/**
+	 * @param Item to compare
+	 * @return equality comparison result.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Item other = (Item) obj;
+		if (id != other.id)
+			return false;
+		return true;
+	}
+
+	/**
+	 * @return string representation of Item.
+	 */
+	@Override
+	public String toString() {
+		return "Item [id=" + id + ", length=" + length + ", width=" + width
+				+ "]";
+	}
+	
 }
