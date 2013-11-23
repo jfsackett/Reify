@@ -63,6 +63,15 @@ public class BinSpace {
 	}
 	
 	/**
+	 * Determines whether another BinSpace inside this space.
+	 * @param binSpace to check.
+	 * @return true if contained, false otherwise.
+	 */
+	public boolean contains(BinSpace binSpace) {
+		return contains(binSpace.getxOffset(), binSpace.getyOffset()) && contains(binSpace.getxOffset() + binSpace.getLength(), binSpace.getyOffset() + binSpace.getWidth());
+	}
+	
+	/**
 	 * @return the xOffset
 	 */
 	public int getxOffset() {
@@ -102,6 +111,20 @@ public class BinSpace {
 	 */
 	public int getRightWall() {
 		return rightWall;
+	}
+
+	/**
+	 * @param leftWall the leftWall to set
+	 */
+	public void setLeftWall(int leftWall) {
+		this.leftWall = leftWall;
+	}
+
+	/**
+	 * @param rightWall the rightWall to set
+	 */
+	public void setRightWall(int rightWall) {
+		this.rightWall = rightWall;
 	}
 
 	/**

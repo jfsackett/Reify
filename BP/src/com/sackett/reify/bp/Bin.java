@@ -41,20 +41,27 @@ public class Bin implements BinPackingElement {
 
 	/**
 	 * This accepts the prior bin space and returns the next available space.
-	 * @param binSpace prior bin space or null to start.
+	 * @param priorBinSpace prior bin space or null to start.
 	 * @return the net available bin space.
 	 */
-	public BinSpace findNextSpace(BinSpace binSpace) {
+	public BinSpace findNextSpace(List<BinSpace> priorBinSpaces) {
+		BinSpace binSpace;
+		
+		// Should not be null but handle it.
+		if (priorBinSpaces == null) {
+			priorBinSpaces = new ArrayList<BinSpace>();
+		}
 		// Get current map of bin.
 		SpaceMap spaceMap = new SpaceMap();
 		// Get map of bits (true = filled, false = available).
 		boolean[][] fillBits = spaceMap.getFillBits();
 		
 		int xOffset = 0, yOffset = 0;
-		// Set to bit after last space.
-		if (binSpace != null) {
-			xOffset = binSpace.getxOffset() + binSpace.getLength();
-			yOffset = binSpace.getyOffset();
+		// Set start to next point after prior space.
+		if (!priorBinSpaces.isEmpty()) {
+			BinSpace priorBinSpace = priorBinSpaces.get(priorBinSpaces.size()-1);
+			xOffset = priorBinSpace.getxOffset() + 1;
+			yOffset = priorBinSpace.getyOffset();
 		}
 		
 		// Find starting point.
@@ -69,29 +76,30 @@ public class Bin implements BinPackingElement {
 				}
 			}
 			
-			// Found free space when not filled and not in input binSpace.
-			if (!fillBits[yOffset][xOffset] && !(binSpace != null && binSpace.contains(xOffset, yOffset))) {
+			// If point filled, cannot be start of space, skip.
+			if (fillBits[yOffset][xOffset]) {
+				xOffset++;
+				continue;
+			}
+
+			// Find length & width of maximum space starting from offsets.
+			binSpace = findExtents(fillBits, xOffset, yOffset);
+			
+			// Check to see if this space is contained by any prior space.
+			boolean candidateSubsetPriorSpace = false;
+			for (BinSpace priorBinSpace : priorBinSpaces) {
+				if (priorBinSpace.contains(binSpace)) {
+					candidateSubsetPriorSpace = true;
+					break;
+				}
+			}
+			
+			// Found new space.
+			if (!candidateSubsetPriorSpace) {
 				break;
 			}
+			
 			xOffset++;
-		}
-		
-		// Find length.
-		int xExtent;
-		for (xExtent = xOffset; xExtent < length; xExtent++) {
-			// Stop when occupied bit encountered.
-			if (fillBits[yOffset][xExtent]) { 
-				break;
-			}
-		}
-		
-		// Find width.
-		int yExtent;
-		for (yExtent = yOffset; yExtent < width; yExtent++) {
-			// Stop when occupied bit encountered.
-			if (fillBits[yExtent][xOffset]) { 
-				break;
-			}
 		}
 		
 		// Find left wall height.
@@ -110,9 +118,11 @@ public class Bin implements BinPackingElement {
 			}
 			leftWall = leftWall - yOffset;
 		}
+		binSpace.setLeftWall(leftWall);
 		
 		// Find right wall height.
 		int rightWall;
+		int xExtent = xOffset + binSpace.getLength();
 		// If at right wall, use remaining bin edge.
 		if (xExtent == length) {
 			rightWall = width - yOffset;
@@ -127,10 +137,40 @@ public class Bin implements BinPackingElement {
 			}
 			rightWall = rightWall - yOffset;
 		}
+		binSpace.setRightWall(rightWall);
 		
-		return new BinSpace(xOffset, yOffset, xExtent - xOffset, yExtent - yOffset, leftWall, rightWall);
+		return binSpace;
 	}
-	
+
+	/**
+	 * Find length & width of maximum space starting from offsets.
+	 * @param fillBits map of bin space.
+	 * @param xOffset x coord of lower left corner.
+	 * @param yOffset y coord of lower left corner.
+	 * @return maximum space starting from coords.
+	 */
+	private BinSpace findExtents(boolean[][] fillBits, int xOffset, int yOffset) {
+		// Find length.
+		int xExtent;
+		for (xExtent = xOffset; xExtent < length; xExtent++) {
+			// Stop when occupied bit encountered.
+			if (fillBits[yOffset][xExtent]) { 
+				break;
+			}
+		}
+		
+		// Find width.
+		int yExtent;
+		for (yExtent = yOffset; yExtent < width; yExtent++) {
+			// Stop when occupied bit encountered.
+			if (fillBits[yExtent][xOffset]) { 
+				break;
+			}
+		}
+		
+		return new BinSpace(xOffset, yOffset, xExtent - xOffset, yExtent - yOffset, 0, 0);
+	}
+			
 	/**
 	 * @return the length
 	 */

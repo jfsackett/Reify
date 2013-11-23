@@ -66,13 +66,14 @@ public class BinPacking extends JFrame {
 		items.add(new Item(500, 300));
 		items.add(new Item(300, 200));
 		items.add(new Item(300, 300));
+		items.add(new Item(300, 100));
 		
 		return items;
 	}
     
 	/** Initializes UI. */
     private void initUI() {
-        setTitle("Bin Packing");
+        setTitle("Bin Packing - by Joseph Sackett");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         add(new BPSurface(bin));
@@ -87,10 +88,11 @@ public class BinPacking extends JFrame {
     	BinSpace binSpace = new BinSpace();
     	// Loop until all items packed or no space sized to hold any items.
     	while (!items.isEmpty() && binSpace != null) {
-    		// Clear so findNextSpace() searches from start of bin.
-    		binSpace = null;
+    		// Clear prior search context.
+    		List<BinSpace> binSpaces = new ArrayList<BinSpace>();
 	    	// Loop until there are no more available spaces.
-	    	while ((binSpace = bin.findNextSpace(binSpace)) != null) {
+	    	while ((binSpace = bin.findNextSpace(binSpaces)) != null) {
+	    		binSpaces.add(binSpace);
 	    		// Retain best fit item & fitness through search.
 	    		Item bestFitItem = null;
 	    		int bestFitness = -1;
