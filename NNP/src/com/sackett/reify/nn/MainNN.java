@@ -29,31 +29,18 @@ import java.util.List;
 import com.sackett.reify.nn.NeuralNetwork.ClassifyOutput;
 
 /**
- * This executes an artificial neural network. 
+ * This executes an artificial neural network, using eight the simulated annealing or backpropagation metheuristic.
  * Parameter suggestions:
- *  xor.csv 2 1 3 0 10000 1.0 0.0 -1.0 1.0 false
- * 	iris.csv 4 3 5 0 10000 0.1 0.0 -1.0 1.0 false
- * 	pallet.csv 2 10 7 0 1000 0.001 0.0 -1.0 1.0 true
+ * 	sa pallet.csv 2 10 7 true -1.0 1.0 10000 .008 .002 0.5 0.2 1.0
+ *  sa xor.csv 2 1 3 false -1.0 1.0 10000 .008 .002 0.5 0.2 1.0
+ *  sa iris.csv 4 3 5 false -1.0 1.0 10000 .008 .002 0.5 0.2 1.0
+ *  bp xor.csv 2 1 3 false -1.0 1.0 10000 1.0
+ *  bp iris.csv 4 3 5 false -1.0 1.0 10000 0.1
  * @author Joseph Sackett
  */
 public class MainNN {
 	/** Neural network. */
 	private NeuralNetwork neuralNetwork;
-	
-	/** Maximum number of training epochs. */
-	private int maxEpochs;
-	
-	/** Weight adjustment coefficient. */
-	private double eta;
-	
-	/** Weight adjustment factor to prior update. */
-	private double momentum;
-	
-	/** Minimum initial synapse weight. */
-	private double minWeight;
-	
-	/** Maximum initial synapse weight. */
-	private double maxWeight;
 	
 	/** Input data. */
 	private double[][] trainInputs;
@@ -61,8 +48,28 @@ public class MainNN {
 	/** Output data. */
 	private double[][] trainOutputs;
 
+	/** Maximum number of training epochs. */
+	private int maxEpochs;
+
+	/** Starting temperature for simulated annealing. */
+	private double startTemp;
+	
+	/** Edning temperature for simulated annealing. */ 
+	private double endTemp;
+	
+	/** Probability of updating a weight. */
+	private double updateProb;
+	
+	/** Factor by which a chosen weight can be updated. */
+	private double weightFactor;
+	
+	/** Weight factor change each epoch. */
+	private double weightFactorChange;
+	
+	/** 4 decimal display. */
 	private static DecimalFormat decFormat = new DecimalFormat("#.####");
 	
+	/** 1 decimal display format. */
 	private static DecimalFormat pctFormat = new DecimalFormat("#.#");
 	
 	static {
@@ -72,45 +79,33 @@ public class MainNN {
 
 	/** Main program for neural network test. */
 	public static void main(String[] args) {
-		String inputFileName = null;
-		int numInputNodes = 0;
-		int numOutputNodes = 0;
-		int numHiddenNodes1 = 5;
-		int numHiddenNodes2 = 5;
-		int maxEpochs = 10000;
-		double eta = 1.0;
-		double momentum = 0.0;
-		double minWeight = -1.0;
-		double maxWeight = 1.0;
-		boolean palletData = false;
-		
-		switch(args.length) {
-		case 11:
-			palletData = Boolean.parseBoolean(args[10]);
-		case 10:
-			maxWeight = Double.parseDouble(args[9]);
-		case 9:
-			minWeight = Double.parseDouble(args[8]);
-		case 8:
-			momentum = Double.parseDouble(args[7]);
-		case 7:
-			eta = Double.parseDouble(args[6]);
-		case 6:
-			maxEpochs = Integer.parseInt(args[5]);
-		case 5:
-			numHiddenNodes2 = Integer.parseInt(args[4]);
-		case 4:
-			numHiddenNodes1 = Integer.parseInt(args[3]);
-		case 3:
-			inputFileName = args[0];
-			numInputNodes = Integer.parseInt(args[1]);
-			numOutputNodes = Integer.parseInt(args[2]);
-			break;
-		default:
-			System.out.println("Command line error.");
+		if (args.length < 4) {
+			printUsage();
 			System.exit(1);
 		}
 		
+		// Can use either simulated annealing or backpropagation.
+		boolean saBpFlag = true;;
+		if (args[0].equalsIgnoreCase("sa")) {
+			// Use simulated annealing.
+			saBpFlag = true;
+		}
+		else if (args[0].equalsIgnoreCase("bp")) {
+			// Use backpropagation.
+			saBpFlag = false;
+		}
+		else {
+			printUsage();
+			System.exit(1);
+		}
+		
+		// Get input filename from command line.
+		String inputFileName = args[1];
+		// Get number of input nodes from command line.
+		int numInputNodes = Integer.parseInt(args[2]);
+		// Get number of output nodes from command line.
+		int numOutputNodes = Integer.parseInt(args[3]);
+
 		// Load data file into input & output arrays.
 		List<double[]> trainInputs = new ArrayList<double[]>();
 		List<double[]> trainOutputs = new ArrayList<double[]>();
@@ -145,38 +140,127 @@ public class MainNN {
 			}
 		}
 		
-		boolean biasNodes = true;
-		MainNN mainNN = new MainNN(trainInputs.toArray(new double[trainInputs.size()][]), trainOutputs.toArray(new double[trainOutputs.size()][]), 
-									numInputNodes, numHiddenNodes1, numOutputNodes, biasNodes, maxEpochs, eta, momentum, minWeight, maxWeight, palletData);
-		mainNN.run();
+		// Parse the optional command line parameters, else use initialization defauls below.
+		boolean palletData = false;
+		int numHiddenNodes = 3;
+		double minWeight = -1.0;
+		double maxWeight = 1.0;
+		int maxEpochs = 10000;
+		double startTemp = .008;
+		double endTemp = .002;
+		double updateProb = 0.5;
+		double weightFactor = 0.2;
+		double weightFactorChange = 0.9998;
+		double eta = .1;
+		double momentum = 0.0;
+		MainNN mainNN;
+		if (saBpFlag) {
+			switch(args.length) {
+			case 14:
+				weightFactorChange = Double.parseDouble(args[13]);
+			case 13:
+				weightFactor = Double.parseDouble(args[12]);
+			case 12:
+				updateProb = Double.parseDouble(args[11]);
+			case 11:
+				endTemp = Double.parseDouble(args[10]);
+			case 10:
+				startTemp = Double.parseDouble(args[9]);
+			case 9:
+				maxEpochs = Integer.parseInt(args[8]);
+			case 8:
+				maxWeight = Double.parseDouble(args[7]);
+			case 7:
+				minWeight = Double.parseDouble(args[6]);
+			case 6:
+				palletData = Boolean.parseBoolean(args[5]);
+			case 5:
+				numHiddenNodes = Integer.parseInt(args[4]);
+				break;
+			default:
+				printUsage();
+				System.exit(1);
+			}
+			// Construct neural network and mainNN metaheuristic execution object.
+			mainNN = new MainNN(trainInputs.toArray(new double[trainInputs.size()][]), trainOutputs.toArray(new double[trainOutputs.size()][]), maxEpochs, startTemp, endTemp, updateProb, weightFactor, weightFactorChange, 
+								buildNeuralNetwork(numInputNodes, numOutputNodes, numHiddenNodes, minWeight, maxWeight, true, palletData));
+		}
+		else {
+			switch(args.length) {
+			case 11:
+				momentum = Double.parseDouble(args[10]);
+			case 10:
+				eta = Double.parseDouble(args[9]);
+			case 9:
+				maxEpochs = Integer.parseInt(args[8]);
+			case 8:
+				maxWeight = Double.parseDouble(args[7]);
+			case 7:
+				minWeight = Double.parseDouble(args[6]);
+			case 6:
+				palletData = Boolean.parseBoolean(args[5]);
+			case 5:
+				numHiddenNodes = Integer.parseInt(args[4]);
+				break;
+			default:
+				printUsage();
+				System.exit(1);
+			}
+			// Construct neural network and mainNN metaheuristic execution object.
+			mainNN = new MainNN(trainInputs.toArray(new double[trainInputs.size()][]), trainOutputs.toArray(new double[trainOutputs.size()][]), maxEpochs, eta, momentum,
+								buildNeuralNetwork(numInputNodes, numOutputNodes, numHiddenNodes, minWeight, maxWeight, true, palletData));
+		}
+		
+		// Execute mainNN metaheuristic, based on above configuration.
+		mainNN.run(saBpFlag);
+	}
+	
+	/** Display command line syntax. */
+	private static void printUsage() {
+		System.out.println("Usage for simulated annealing:");
+		System.out.println("java com.sackett.reify.nn.MainNN sa {input filename} {num input nodes} {num output nodes} [num hidden nodes] [pallet output flag] [min init weight] [max init weight] [max num epochs] [init temp] [start temp] [end temp] [update prob] [weight factor] [weight factor change]");
+		System.out.println("Usage for backpropagation:");
+		System.out.println("java com.sackett.reify.nn.MainNN bp {input filename} {num input nodes} {num output nodes} [num hidden nodes] [pallet output flag] [min init weight] [max init weight] [max num epochs] [eta]");
 	}
 
 	/**
-	 * Constructor takes neural network definition.
+	 * Constructor for simulated annealing neural network definition.
 	 */
-	private MainNN(double[][] trainInputs, double[][] trainOutputs, int numInputNodes, int numHiddenNodes, int numOutputNodes, boolean biasNodes, 
-					int maxEpochs, double eta, double momentum, double minWeight, double maxWeight, boolean palletData) {
+	public MainNN(double[][] trainInputs, double[][] trainOutputs, int maxEpochs, double startTemp, double endTemp, double updateProb, double weightFactor, double weightFactorChange, NeuralNetwork neuralNetwork) {
 		this.trainInputs = trainInputs;
 		this.trainOutputs = trainOutputs;
 		this.maxEpochs = maxEpochs;
-		this.eta = eta;
-		this.momentum = momentum;
-		this.minWeight = minWeight;
-		this.maxWeight = maxWeight;
-		
-		if (!palletData) {
-			neuralNetwork = buildNeuralNetwork(numInputNodes, numHiddenNodes, numOutputNodes, biasNodes);
-		}
-		else {
-			neuralNetwork = buildPalletNeuralNetwork(numInputNodes, numHiddenNodes, numOutputNodes, biasNodes);
-		}
+		this.startTemp = startTemp;
+		this.endTemp = endTemp;
+		this.updateProb = updateProb;
+		this.weightFactor = weightFactor;
+		this.weightFactorChange = weightFactorChange;
+		this.neuralNetwork = neuralNetwork;
 	}
 		
-	private void run() {
-		sa();
-//		bp();
+	/**
+	 * Constructor for backpropagation neural network definition.
+	 */
+	public MainNN(double[][] trainInputs, double[][] trainOutputs, int maxEpochs, double eta, double momentum, NeuralNetwork neuralNetwork) {
+		this.trainInputs = trainInputs;
+		this.trainOutputs = trainOutputs;
+		this.maxEpochs = maxEpochs;
+		this.neuralNetwork = neuralNetwork;
+		this.neuralNetwork.setEta(eta);
+		this.neuralNetwork.setMomentum(momentum);		
 	}
 	
+	/** Executes simulated annealing or backpropagation metaheuristic. */
+	private void run(boolean saBpFlag) {
+		if (saBpFlag) {
+			sa();
+		}
+		else {
+			bp();
+		}
+	}
+	
+	/** Execute simulated annealing metaheuristic. */
 	private void sa() {
 		// Previous neural network.
 		NeuralNetwork prevNeuralNetwork = null;
@@ -186,15 +270,9 @@ public class MainNN {
 		double prevMaxRMSE = Double.MAX_VALUE;
 		// Previous epoch accuracy.
 		double prevAccuracy = Double.MAX_VALUE;
-		// Update probability.
-		double updateProb = 0.5;
-		// Weight adjustment factor.
-		double weightFactor = 0.2;
-		// Adjustment factor adjustment.
-//		double factorChange = 0.998; // good for 1000
-		double factorChange = 0.9998; // good for 10000
-		
+		// Maximum accuracy over all epocks.
 		double maxAccuracy = 0.0;
+		// Minimum average RMSE over all epochs.
 		double minAveRMSE = Double.MAX_VALUE;
 
 		// Loop through epochs.
@@ -212,23 +290,14 @@ public class MainNN {
 				sumRMSE = sumRMSE + classifyOutput.getRmsError();
 				maxRMSE = Math.max(maxRMSE, classifyOutput.getRmsError());
 				sumClassError = sumClassError + classifyOutput.getClassError();
-//				for (double output : classifyOutput.getOutput()) {
-//					System.out.print("[" + output + ']');
-//				}
-//				System.out.println();
 			}
 			
 			double avgRMSE = sumRMSE / trainInputs.length;
 			double accuracy = 1 - sumClassError / trainInputs.length;
 			System.out.println("Epoch " + epoch + ": maxRMSE: " + decFormat.format(maxRMSE) + ", aveRMSE: " + decFormat.format(avgRMSE) 
 								+ ", Acc: " + pctFormat.format(accuracy * 100) + '%');
-//if (avgRMSE == .25) {
-//	System.out.println(neuralNetwork);
-//	System.out.println();
-//}
 			// Regress to previous neural network if error is higher.
-//			if (accuracy > prevAccuracy && !moveUphill(prevAccuracy, accuracy, ((double)maxEpochs - (double)epoch)/(double)maxEpochs * 1.0)) {
-			if (avgRMSE > prevAvgRMSE && !moveUphill(prevAvgRMSE, avgRMSE, prevMaxRMSE, maxRMSE, ((double)maxEpochs - (double)epoch)/(double)maxEpochs * .006 + .002)) {
+			if (avgRMSE > prevAvgRMSE && !moveUphill(prevAvgRMSE, avgRMSE, prevMaxRMSE, maxRMSE, ((double)maxEpochs - (double)epoch)/(double)maxEpochs * (startTemp - endTemp) + endTemp)) {
 				neuralNetwork = prevNeuralNetwork;
 				avgRMSE = prevAvgRMSE;
 				maxRMSE = prevMaxRMSE;
@@ -259,7 +328,10 @@ public class MainNN {
 				break;
 			}
 			
-//			weightFactor *= factorChange;
+			// Change weight factor.
+			weightFactor *= weightFactorChange;
+			
+			// Save globally best accuracy & avgRMSE for report.
 			if (maxAccuracy < accuracy) {
 				maxAccuracy = accuracy;
 			}
@@ -267,26 +339,20 @@ public class MainNN {
 				minAveRMSE = avgRMSE;
 			}
 		}
-		System.out.println(neuralNetwork);
 		System.out.println("minAveRMSE: " + decFormat.format(minAveRMSE) + ", maxAccuracy: " + pctFormat.format(maxAccuracy * 100) + '%');
 	}
 	
+	/** Calculate simulated annealing chance of moving uphill, check random probability and return flag indicating direction. */ 
 	private static boolean moveUphill(double prevAvgRMSE, double avgRMSE, double prevMaxRMSE, double maxRMSE, double temp) {
 		double adjPrevAvgRMSE = prevAvgRMSE + prevMaxRMSE / 100;
 		double adjAvgRMSE = avgRMSE + maxRMSE / 100;
-//		double adjPrevAvgRMSE = prevAvgRMSE;
-//		double adjAvgRMSE = avgRMSE;
-//		if (avgRMSE - prevAvgRMSE < .003) {
-//			return maxRMSE > prevMaxRMSE; 
-//		}
-//		double prob = Math.exp((prevAvgRMSE - avgRMSE) / temp);
 		double prob = Math.exp((adjPrevAvgRMSE - adjAvgRMSE) / temp);
 		double random = Math.random();
-//		System.out.println(((prob > random) ? "UP" : "  ") + "  prob- " + decFormat.format(prob) + "  random- " + decFormat.format(random) + "  prevAvgRMSE- " + decFormat.format(prevAvgRMSE) + "  avgRMSE- " + decFormat.format(avgRMSE) + "  temp- " + temp);
 		System.out.println(((prob > random) ? "UP" : "  ") + "  prob- " + decFormat.format(prob) + "  random- " + decFormat.format(random) + "  prevAvgRMSE- " + decFormat.format(adjPrevAvgRMSE) + "  avgRMSE- " + decFormat.format(adjAvgRMSE) + "  temp- " + temp);
 		return prob > random ;
 	}
 	
+	/** Execute backpropagation metaheuristic. */
 	private void bp() {
 		// Loop through epochs.
 		for (int epoch = 0 ; epoch < maxEpochs ; epoch++) {
@@ -314,12 +380,21 @@ public class MainNN {
 				break;
 			}
 		}
-		System.out.println(neuralNetwork);
-
 	}
 
-	private NeuralNetwork buildNeuralNetwork(int numInputNodes, int numHiddenNodes, int numOutputNodes, boolean biasNodes) {
-		NeuralNetwork neuralNetwork = new NeuralNetwork(eta, momentum);
+	/** Build regular neural network or more advanced palletizing network with factored output nodes, based on flag. */
+	private static NeuralNetwork buildNeuralNetwork(int numInputNodes, int numOutputNodes, int numHiddenNodes, double minWeight, double maxWeight, boolean biasNodes, boolean palletData) {
+		if (palletData) {
+			return buildPalletNeuralNetwork(numInputNodes, numOutputNodes, numHiddenNodes, minWeight, maxWeight, biasNodes);
+		}
+		else {
+			return buildStandardNeuralNetwork(numInputNodes, numOutputNodes, numHiddenNodes, minWeight, maxWeight, biasNodes);
+		}
+	}
+	
+	/** Build standard neural network. */
+	private static NeuralNetwork buildStandardNeuralNetwork(int numInputNodes, int numOutputNodes, int numHiddenNodes, double minWeight, double maxWeight, boolean biasNodes) {
+		NeuralNetwork neuralNetwork = new NeuralNetwork();
 		
 		// Build node layers. Capacity includes room for optional bias node.
 		List<InputNode> inputNodes = new ArrayList<InputNode>(numInputNodes + 1);
@@ -356,7 +431,7 @@ public class MainNN {
 					continue;
 				}
 				// Create synapse.
-				Napse napse = new Napse(inputNode, hiddenNode, getRandomWeight());
+				Napse napse = new Napse(inputNode, hiddenNode, getRandomWeight(minWeight, maxWeight));
 				// Add to both of its ends.
 				inputNode.getOutputNapses().add(napse);
 				hiddenNode.getInputNapses().add(napse);
@@ -375,7 +450,7 @@ public class MainNN {
 					continue;
 				}
 				// Create synapse.
-				Napse napse = new Napse(hiddenNode, outputNode, getRandomWeight());
+				Napse napse = new Napse(hiddenNode, outputNode, getRandomWeight(minWeight, maxWeight));
 				// Add to both of its ends.
 				hiddenNode.getOutputNapses().add(napse);
 				outputNode.getInputNapses().add(napse);
@@ -390,8 +465,9 @@ public class MainNN {
 		return neuralNetwork;
 	}
 
-	private NeuralNetwork buildPalletNeuralNetwork(int numInputNodes, int numHiddenNodes, int numOutputNodes, boolean biasNodes) {
-		NeuralNetwork neuralNetwork = new NeuralNetwork(eta, momentum);
+	/** Build advanced palletizing network with factored output nodes. */
+	private static NeuralNetwork buildPalletNeuralNetwork(int numInputNodes, int numOutputNodes, int numHiddenNodes, double minWeight, double maxWeight, boolean biasNodes) {
+		NeuralNetwork neuralNetwork = new NeuralNetwork();
 		
 		// Build node layers. Capacity includes room for optional bias node.
 		List<InputNode> inputNodes = new ArrayList<InputNode>(numInputNodes + 1);
@@ -443,7 +519,7 @@ public class MainNN {
 					continue;
 				}
 				// Create synapse.
-				Napse napse = new Napse(inputNode, hiddenNode, getRandomWeight());
+				Napse napse = new Napse(inputNode, hiddenNode, getRandomWeight(minWeight, maxWeight));
 				// Add to both of its ends.
 				inputNode.getOutputNapses().add(napse);
 				hiddenNode.getInputNapses().add(napse);
@@ -462,7 +538,7 @@ public class MainNN {
 					continue;
 				}
 				// Create synapse.
-				Napse napse = new Napse(hiddenNode, hiddenNodeA, getRandomWeight());
+				Napse napse = new Napse(hiddenNode, hiddenNodeA, getRandomWeight(minWeight, maxWeight));
 				// Add to both of its ends.
 				hiddenNode.getOutputNapses().add(napse);
 				hiddenNodeA.getInputNapses().add(napse);
@@ -473,7 +549,7 @@ public class MainNN {
 					continue;
 				}
 				// Create synapse.
-				Napse napse = new Napse(hiddenNode, hiddenNodeB, getRandomWeight());
+				Napse napse = new Napse(hiddenNode, hiddenNodeB, getRandomWeight(minWeight, maxWeight));
 				// Add to both of its ends.
 				hiddenNode.getOutputNapses().add(napse);
 				hiddenNodeB.getInputNapses().add(napse);
@@ -493,7 +569,7 @@ public class MainNN {
 					continue;
 				}
 				// Create synapse.
-				Napse napse = new Napse(hiddenNodeA, outputNode, getRandomWeight());
+				Napse napse = new Napse(hiddenNodeA, outputNode, getRandomWeight(minWeight, maxWeight));
 				// Add to both of its ends.
 				hiddenNodeA.getOutputNapses().add(napse);
 				outputNode.getInputNapses().add(napse);
@@ -517,32 +593,14 @@ public class MainNN {
 					continue;
 				}
 				// Create synapse.
-				Napse napse = new Napse(hiddenNodeB, outputNode, getRandomWeight());
+				Napse napse = new Napse(hiddenNodeB, outputNode, getRandomWeight(minWeight, maxWeight));
 				// Add to both of its ends.
 				hiddenNodeB.getOutputNapses().add(napse);
 				outputNode.getInputNapses().add(napse);				
 			}			
 		}
-/*		
-		// Add synapse between hidden & output layers.
-		for (HiddenNode hiddenNode : hiddenNodes) {
-			// If not using bias nodes, skip adding synapses to bias node.
-			if (!biasNodes && hiddenNode.isBias()) {
-				continue;
-			}
-			for (OutputNode outputNode : outputNodes) {
-				// Skip adding synapses to bias node.
-				if (outputNode.isBias()) {
-					continue;
-				}
-				// Create synapse.
-				Napse napse = new Napse(hiddenNode, outputNode, getRandomWeight());
-				// Add to both of its ends.
-				hiddenNode.getOutputNapses().add(napse);
-				outputNode.getInputNapses().add(napse);
-			}
-		}
-*/
+
+		// Collect different layers of hidden nodes together.
 		List<HiddenNode> allHiddenNodes = new ArrayList<HiddenNode>();
 		allHiddenNodes.addAll(hiddenNodes);
 		allHiddenNodes.addAll(hiddenNodesA);
@@ -550,7 +608,6 @@ public class MainNN {
 		
 		// Add input, hidden and output layers to neural network.
 		neuralNetwork.setInputNodes(inputNodes);
-//		neuralNetwork.setHiddenNodes(hiddenNodes);
 		neuralNetwork.setHiddenNodes(allHiddenNodes);
 		neuralNetwork.setOutputNodes(outputNodes);
 		
@@ -561,7 +618,7 @@ public class MainNN {
 	 * Generate random weight between minWeight & maxWeight.
 	 * @return random weight
 	 */
-	private double getRandomWeight() {
+	private static double getRandomWeight(double minWeight, double maxWeight) {
 		return (maxWeight - minWeight) * Math.random() + minWeight;
 	}
 }

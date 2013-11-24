@@ -92,9 +92,7 @@ public class HiddenNode extends Node {
 		return hiddenNodeClone;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	/** Return string representation. */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();

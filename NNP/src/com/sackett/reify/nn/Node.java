@@ -86,6 +86,9 @@ public abstract class Node {
 	 */
 	public abstract List<Napse> getInputNapses();
 	
+	@Override
+	public abstract Node clone() throws CloneNotSupportedException;
+	
 	/**
 	 * @return the id
 	 */

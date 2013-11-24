@@ -103,9 +103,7 @@ public class Napse {
 		return new Napse(inNode, outNode, weight);
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
+	/** Calculates hash code for this Napse. */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -115,9 +113,7 @@ public class Napse {
 		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
+	/** Checks equality between this and input Napse. */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -142,9 +138,7 @@ public class Napse {
 
 	private static DecimalFormat decFormat = new DecimalFormat("#.######");
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	/** Return string representation. */
 	@Override
 	public String toString() {
 		return "[" + decFormat.format(weight) + " -> " + decFormat.format(outNode.getId()) + "]";

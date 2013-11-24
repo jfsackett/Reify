@@ -17,7 +17,6 @@
 */
 package com.sackett.reify.nn;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +42,11 @@ public class NeuralNetwork {
 	/** Output nodes. */
 	private List<OutputNode> outputNodes;	
 	
+	/** Default constructor. */
+	public NeuralNetwork() {
+
+	}
+
 	/**
 	 * Define a neural network, including weight adjustment factors.
 	 * @param eta weight adjustment coefficient.
@@ -110,6 +114,20 @@ public class NeuralNetwork {
 	}
 
 	/**
+	 * @param eta the eta to set
+	 */
+	public void setEta(double eta) {
+		this.eta = eta;
+	}
+
+	/**
+	 * @param momentum the momentum to set
+	 */
+	public void setMomentum(double momentum) {
+		this.momentum = momentum;
+	}
+
+	/**
 	 * @param inputNodes the inputNodes to set
 	 */
 	public void setInputNodes(List<InputNode> inputNodes) {
@@ -130,8 +148,6 @@ public class NeuralNetwork {
 		this.outputNodes = outputNodes;
 	}
 
-	private static DecimalFormat decFormat = new DecimalFormat("#.#####");
-	
 	/**
 	 * Initializes the input values and classifies the instance by calculating all node values, including outputs and errors. 
 	 * @param inputs array of input values.
@@ -180,7 +196,6 @@ public class NeuralNetwork {
 		double sumErrorsSqu = 0.0;
 		// Number of discrete classification errors.
 		long sumDiscreteErrors = 0;
-		long sumActualOutput = 0;
 
 		double[] actualOutputs = new double[outputNodes.size()-1];
 		boolean first = true; int ix = 0;
@@ -201,28 +216,16 @@ public class NeuralNetwork {
 			sumErrorsSqu += Math.pow(targetOutputs[ix] - actualOutputs[ix], 2);
 			
 			// Accumulate discrete errors.
-//			sumDiscreteErrors += Math.abs((long)targetOutputs[ix] - Math.round(actualOutputs[ix]));
 			long discreteError = Math.abs((long)targetOutputs[ix] - Math.round(actualOutputs[ix]));
-//			if (discreteError > 0) {
-//				System.out.print("E: ");
-//			}
 			sumDiscreteErrors += (discreteError > 0) ? 1 : 0; 
-			
-//			sumActualOutput += actualOutputs[ix];
 			
 			ix++;
 		}
-		
-//		for (int ixx = 0 ; ixx < actualOutputs.length ; ixx++) {
-//			System.out.print("Actual: [" + decFormat.format(Math.round(actualOutputs[ixx])) + "] Target: [" + decFormat.format(targetOutputs[ixx]) + "]  ");
-//		}
-//		System.out.println();
 		
 		// Calculate root mean square error.
 		double rmsError = Math.sqrt(sumErrorsSqu / (double)targetOutputs.length);
 		// Calculate classification error.
 		double classError = (double)sumDiscreteErrors / (double)targetOutputs.length;
-//		double classError = (double)sumDiscreteErrors / (double)sumActualOutput; //targetOutputs.length;
 		
 		return new ClassifyOutput(actualOutputs, rmsError, classError);
 	}
@@ -275,7 +278,6 @@ public class NeuralNetwork {
 		// Maps of nodes for resolving Napse connections.
 		Map<Double,InputNode> inputNodesMap = new HashMap<Double,InputNode>();
 		Map<Double,HiddenNode> hiddenNodesMap = new HashMap<Double,HiddenNode>();
-		Map<Double,OutputNode> outputNodesMap = new HashMap<Double,OutputNode>();
 		
 		// Loop through and input to hidden napses and alter layer connections & weights.
 		List<Napse> removedInputToHiddenNapses = new ArrayList<Napse>();
@@ -283,12 +285,6 @@ public class NeuralNetwork {
 			// Place in map for indexing to resolve Napse connections.
 			inputNodesMap.put(inputNode.getId(), inputNode);
 			for (Napse napse : inputNode.getOutputNapses()) {
-				// Check whether to remove this napse.
-//				if (checkRandom(updateFactor)) {
-//					// Save for disconnection & possible use later.
-//					removedInputToHiddenNapses.add(napse);
-//				}
-//				else 
 				if (checkRandom(updateProb)) {
 					// Update napse weight.
 					napse.setWeight(factorWeight(napse.getWeight(), weightFactor));
@@ -307,79 +303,16 @@ public class NeuralNetwork {
 		}
 
 		// Loop through and hidden to output napses and alter layer connections & weights.
-		List<Napse> removedHiddenToOutputNapses = new ArrayList<Napse>();
 		for (HiddenNode hiddenNode : hiddenNodes) {
 			// Place in map for indexing to resolve Napse connections.
 			hiddenNodesMap.put(hiddenNode.getId(), hiddenNode);
 			for (Napse napse : hiddenNode.getOutputNapses()) {
-				// Check whether to remove this napse.
-//				if (checkRandom(updateFactor)) {
-//					// Save for disconnection & possible use later.
-//					removedHiddenToOutputNapses.add(napse);
-//				}
-//				else 
 				if (checkRandom(updateProb)) {
 					// Update napse weight.
 					napse.setWeight(factorWeight(napse.getWeight(), weightFactor));
 				}
 			}
 		}
-		
-//		// Loop through removed napses to disconnect and save for later use.
-//		for (Napse napse : removedHiddenToOutputNapses) {
-//			// Remove from in node.
-//			((HiddenNode)napse.getInNode()).getOutputNapses().remove(napse);
-//			// Remove from out node.
-//			((OutputNode)napse.getOutNode()).getInputNapses().remove(napse);
-//			// Save for potential rese later.
-//			discHiddenToOutputNapses.add(napse);
-//		}
-//
-//		// Loop through output nodes.
-//		for (OutputNode outputNode : outputNodes) {
-//			// Place in map for indexing to resolve Napse connections.
-//			outputNodesMap.put(outputNode.getId(), outputNode);
-//		}
-		
-		// Loop through previously removed input to hidden napses and check probability to add them back.
-//		List<Napse> reinstateNapses = new ArrayList<Napse>();
-//		for (Napse napse : discInputToHiddenNapses) {
-//			if (checkRandom(updateFactor)) {
-//				reinstateNapses.add(napse);
-//				// Update weights.
-//				napse.setWeight(factorWeight(napse.getWeight(), updateFactor));
-//				// Get current nodes to connect since they've since been cloned.
-//				InputNode inputNode = inputNodesMap.get(napse.getInNode().getId());
-//				HiddenNode hiddenNode = hiddenNodesMap.get(napse.getOutNode().getId());
-//				// Set napse to point at current nodes.
-//				napse.setInNode(inputNode);
-//				napse.setOutNode(hiddenNode);
-//				// Add napse to output of hidden node and input of output node.
-//				inputNode.getOutputNapses().add(napse);
-//				hiddenNode.getInputNapses().add(napse);
-//			}
-//		}
-//		discInputToHiddenNapses.removeAll(reinstateNapses);
-//		
-//		// Loop through previously removed hidden to output napses and check probability to add them back.
-//		reinstateNapses = new ArrayList<Napse>();
-//		for (Napse napse : discHiddenToOutputNapses) {
-//			if (checkRandom(updateFactor)) {
-//				reinstateNapses.add(napse);
-//				// Update weights.
-//				napse.setWeight(factorWeight(napse.getWeight(), updateFactor));
-//				// Get current nodes to connect since they've since been cloned.
-//				HiddenNode hiddenNode = hiddenNodesMap.get(napse.getInNode().getId());
-//				OutputNode outputNode = outputNodesMap.get(napse.getOutNode().getId());
-//				// Set napse to point at current nodes.
-//				napse.setInNode(hiddenNode);
-//				napse.setOutNode(outputNode);
-//				// Add napse to output of hidden node and input of output node.
-//				hiddenNode.getOutputNapses().add(napse);
-//				outputNode.getInputNapses().add(napse);
-//			}
-//		}
-//		discHiddenToOutputNapses.removeAll(reinstateNapses);
 	}
 	
 	/** 
@@ -399,7 +332,6 @@ public class NeuralNetwork {
 	 */
 	private static double factorWeight(double weight, double factor) {
 		return weight + 2 * factor * Math.random() - factor;
-//		return weight + 2 * Math.random() - 1;
 	}
 	
 	/**
@@ -606,9 +538,7 @@ public class NeuralNetwork {
 		return true;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	/** Return string representation. */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
