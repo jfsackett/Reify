@@ -1,6 +1,0 @@
-copy C:\Work\git\Reify\BP\src\com\sackett\reify\bp\*.java "C:\Users\user1\Google Drive\School\Courses\NeuralNetworks-578\FinalProject\source"
-copy C:\Work\git\Reify\BP\src\com\sackett\reify\bp\view\*.java "C:\Users\user1\Google Drive\School\Courses\NeuralNetworks-578\FinalProject\source"
-copy C:\Work\git\Reify\BP\*.txt "C:\Users\user1\Google Drive\School\Courses\NeuralNetworks-578\FinalProject\source"
-copy C:\Work\git\Reify\BP\*.html "C:\Users\user1\Google Drive\School\Courses\NeuralNetworks-578\FinalProject\source"
-copy C:\Work\git\Reify\BP\*.bat "C:\Users\user1\Google Drive\School\Courses\NeuralNetworks-578\FinalProject\source"
-copy C:\Work\git\Reify\BP\*.csv "C:\Users\user1\Google Drive\School\Courses\NeuralNetworks-578\FinalProject\source"
