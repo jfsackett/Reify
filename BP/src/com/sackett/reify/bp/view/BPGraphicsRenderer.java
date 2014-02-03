@@ -62,6 +62,8 @@ public class BPGraphicsRenderer implements BinPackingElementVisitor {
 		ShapeNormalizer normalizer = new ShapeNormalizer(panelHeight, yOffset + packedItem.getxOffset(), xOffset + packedItem.getyOffset(), packedItem.getItem().getLength(), packedItem.getItem().getWidth());
 		graphics.setColor(new Color(packedItem.getItem().getId()));
 		graphics.fillRect(normalizer.getULXOffset(), normalizer.getULYOffset(), normalizer.getWidth(), normalizer.getLength());
+        graphics.setColor(Color.black);
+        graphics.drawRect(normalizer.getULXOffset(), normalizer.getULYOffset(), normalizer.getWidth(), normalizer.getLength());
 	}
 
 	/** Visit an Item. */

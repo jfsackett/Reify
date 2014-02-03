@@ -17,28 +17,22 @@
 */
 package com.sackett.reify.bp;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import com.sackett.reify.bp.view.BPSurface;
+import com.sackett.reify.bp.view.BPView;
 
 public class BinPacking extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
 	// GUI display constants.
 	private static String TITLE = "Palletizer 2D";
-	private static int WIDTH = 900;
+	private static int WIDTH = 800;
 	private static int HEIGHT = 750;
 	
-	/** The main bin to be filled. */
-	Bin bin;
+	/** MVC view. */
+//	private BPView view;
 	
-	/** The items to pack in bin. */
-    List<Item> items;
-    
     /** Main program initializes UI & kicks off bin packing routine. */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -46,85 +40,24 @@ public class BinPacking extends JFrame {
             public void run() {
             	BinPacking binPacking = new BinPacking();
             	binPacking.setVisible(true);
-            	
-            	binPacking.doPack();
             }
         });
     }
 		
-	public BinPacking() {
-		// Initialize bin & items.
-		bin = new Bin(800, 600);
-		items = initializeItemsForPacking();
-		
+	public BinPacking() {		
 		// Initialize UI.
         initUI();
     }
 	
-	/** Build the list of items to pack. */
-	private List<Item> initializeItemsForPacking() {
-		List<Item> items = new ArrayList<Item>();
-		
-		items.add(new Item(200, 400));
-		items.add(new Item(100, 500));
-		items.add(new Item(300, 200));
-		items.add(new Item(500, 300));
-		items.add(new Item(300, 200));
-		items.add(new Item(300, 300));
-		items.add(new Item(300, 100));
-		
-		return items;
-	}
-    
 	/** Initializes UI. */
     private void initUI() {
         setTitle(TITLE);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
-        add(new BPSurface(bin));
-        
+//        add(new BPSurface(bin));
+		add(new BPView());
+       
         setSize(WIDTH, HEIGHT);
         setLocationRelativeTo(null);        
-    }
-    
-    /** Execute packing heuristic. */
-    private void doPack() {
-    	// Space in which to pack item. Also used in loop conditional. 
-    	BinSpace binSpace = new BinSpace();
-    	// Loop until all items packed or no space sized to hold any items.
-    	while (!items.isEmpty() && binSpace != null) {
-    		// Clear prior search context.
-    		List<BinSpace> binSpaces = new ArrayList<BinSpace>();
-	    	// Loop until there are no more available spaces.
-	    	while ((binSpace = bin.findNextSpace(binSpaces)) != null) {
-	    		binSpaces.add(binSpace);
-	    		// Retain best fit item & fitness through search.
-	    		Item bestFitItem = null;
-	    		int bestFitness = -1;
-	    		// Loop through all items to find best fit item.
-	    		for (Item item : items) {
-	    			int currFitness;
-	    			// Better fit?
-	    			if ((currFitness = item.fitnessForSpace(binSpace)) > bestFitness) {
-	    				// Retain item.
-	    				bestFitItem = item;
-	    				bestFitness = currFitness;
-	    			}
-	    		}
-	    		
-	    		// If no fit items, can't place one, continue to next space.
-	    		if (bestFitItem == null) {
-	    			continue;
-	    		}
-	    		
-	    		// Add item to bin in available space. Left or right wall decided by conditional.
-	    		bin.addItem(bestFitItem, binSpace, binSpace.getLeftWall() >= binSpace.getRightWall());
-	    		items.remove(bestFitItem);
-	    		break;
-	    	}
-	    	
-    	}
-    	
-    	System.out.println("Done packing.");
     }
 }
