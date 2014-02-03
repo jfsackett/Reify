@@ -28,6 +28,11 @@ import com.sackett.reify.bp.view.BPSurface;
 public class BinPacking extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
+	// GUI display constants.
+	private static String TITLE = "Palletizer 2D";
+	private static int WIDTH = 900;
+	private static int HEIGHT = 750;
+	
 	/** The main bin to be filled. */
 	Bin bin;
 	
@@ -73,12 +78,12 @@ public class BinPacking extends JFrame {
     
 	/** Initializes UI. */
     private void initUI() {
-        setTitle("Bin Packing - by Joseph Sackett");
+        setTitle(TITLE);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         add(new BPSurface(bin));
         
-        setSize(900, 750);
+        setSize(WIDTH, HEIGHT);
         setLocationRelativeTo(null);        
     }
     
