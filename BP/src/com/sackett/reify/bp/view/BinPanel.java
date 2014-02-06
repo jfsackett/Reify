@@ -1,3 +1,20 @@
+/*
+    Bin Packing System
+    Copyright (C) 2014  Sackett Inc.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 package com.sackett.reify.bp.view;
 
 import java.awt.Color;
@@ -65,17 +82,26 @@ public class BinPanel extends JPanel {
     		xOffset = xOffset + item.getLength() / 4 + 10;
     	}
     }
-    
+
+	/**
+	 * @param bin the bin to set
+	 */
 	public void setBin(Bin bin) {
 		this.bin = bin;
 	}
 
+	/**
+	 * @param unpackedItems the unpackedItems to set
+	 */
 	public void setUnpackedItems(List<Item> unpackedItems) {
 		this.unpackedItems = unpackedItems;
 	}
 
+	/**
+	 * @param status the status to set
+	 */
 	public void setStatus(String status) {
 		this.status = status;
-	}    
-	
+	}
+    	
 }

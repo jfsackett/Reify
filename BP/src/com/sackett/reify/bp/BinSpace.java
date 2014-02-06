@@ -1,6 +1,6 @@
 /*
     Bin Packing System
-    Copyright (C) 2013  Sackett Inc.
+    Copyright (C) 2014  Sackett Inc.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

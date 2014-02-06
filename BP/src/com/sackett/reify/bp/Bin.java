@@ -1,6 +1,6 @@
 /*
     Bin Packing System
-    Copyright (C) 2013  Sackett Inc.
+    Copyright (C) 2014  Sackett Inc.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,10 +20,7 @@ package com.sackett.reify.bp;
 import java.util.ArrayList;
 import java.util.List;
 
-/** 
- * This represents a bin to be packed full of items. 
- * @author Joseph Sackett
- */
+/** This represents a bin to be packed full of items. */
 public class Bin implements BinPackingElement {
 	/** Item length. */
 	private int length;
@@ -212,9 +209,7 @@ public class Bin implements BinPackingElement {
 		visitor.visit(this);
 	}
 
-	/**
-	 * Map to determine available free space.
-	 */
+	/** Map to determine available free space. */
 	public class SpaceMap implements BinPackingElement {
 		/** Map of filled area. */
 		private boolean[][] fillBits;

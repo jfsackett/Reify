@@ -1,6 +1,6 @@
 /*
     Bin Packing System
-    Copyright (C) 2013  Sackett Inc.
+    Copyright (C) 2014  Sackett Inc.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import com.sackett.reify.bp.BinPackingElementVisitor;
 import com.sackett.reify.bp.Item;
 import com.sackett.reify.bp.PackedItem;
 
+/** Visits bin elements to graphically display them. */
 public class BPGraphicsRenderer implements BinPackingElementVisitor {
 	/** Graphics context. */
 	Graphics2D graphics;
@@ -68,8 +69,7 @@ public class BPGraphicsRenderer implements BinPackingElementVisitor {
 
 	/** Visit an Item. */
 	public void visit(Item item) {
-//		graphics.setColor(new Color(item.getId()));
-//		graphics.fillRect(xOffset, yOffset, item.getWidth(), item.getLength());
+		// NoOp.
 	}
 
 	/** Visit a SpaceMap. */
@@ -83,6 +83,7 @@ public class BPGraphicsRenderer implements BinPackingElementVisitor {
 		}
 	}	
 	
+	/** Responsible for adjusting coordinates from domain based (lower-left) to display (upper-left) based. */ 
 	private static class ShapeNormalizer {
 		/** Panel length. */
 		private int panelHeight;

@@ -1,6 +1,6 @@
 /*
     Bin Packing System
-    Copyright (C) 2013  Sackett Inc.
+    Copyright (C) 2014  Sackett Inc.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ package com.sackett.reify.bp;
 
 import com.sackett.reify.bp.Bin.SpaceMap;
 
+/** Interface for visitor to bin packing elements. Part of the visitor pattern. */
 public interface BinPackingElementVisitor {
 
 	/** Visit a Bin. */

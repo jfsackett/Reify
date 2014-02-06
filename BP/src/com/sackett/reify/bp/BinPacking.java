@@ -1,6 +1,6 @@
 /*
     Bin Packing System
-    Copyright (C) 2013  Sackett Inc.
+    Copyright (C) 2014  Sackett Inc.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import javax.swing.SwingUtilities;
 
 import com.sackett.reify.bp.view.BPView;
 
+/** Main application frame. */
 public class BinPacking extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
@@ -30,10 +31,7 @@ public class BinPacking extends JFrame {
 	private static int WIDTH = 800;
 	private static int HEIGHT = 750;
 	
-	/** MVC view. */
-//	private BPView view;
-	
-    /** Main program initializes UI & kicks off bin packing routine. */
+    /** Main program initializes UI & kicks off bin packing UI. */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -54,7 +52,6 @@ public class BinPacking extends JFrame {
         setTitle(TITLE);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
-//        add(new BPSurface(bin));
 		add(new BPView());
        
         setSize(WIDTH, HEIGHT);

@@ -1,6 +1,6 @@
 /*
     Bin Packing System
-    Copyright (C) 2013  Sackett Inc.
+    Copyright (C) 2014  Sackett Inc.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,10 +17,7 @@
 */
 package com.sackett.reify.bp;
 
-/** 
- * This represents an item packed in a bin, includes its location.. 
- * @author Joseph Sackett
- */
+/** This represents an item packed in a bin, includes its location. */
 public class PackedItem {
 	/** Item packed. */
 	Item item;

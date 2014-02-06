@@ -1,6 +1,6 @@
 /*
     Bin Packing System
-    Copyright (C) 2013  Sackett Inc.
+    Copyright (C) 2014  Sackett Inc.
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import com.sackett.reify.bp.BinPackingElementVisitor;
 import com.sackett.reify.bp.Item;
 import com.sackett.reify.bp.PackedItem;
 
+/** Visits bin elements to analyze space usage. */
 public class BPSpaceAnalyzer implements BinPackingElementVisitor {
 	/** Volume of the bin. */
 	private int binVolume = 0;
@@ -62,16 +63,25 @@ public class BPSpaceAnalyzer implements BinPackingElementVisitor {
 		return (float)packedItemsVolume / (float)binVolume;
 	}
 
+	/**
+	 * @return the binVolume
+	 */
 	public int getBinVolume() {
 		return binVolume;
 	}
 
+	/**
+	 * @return the packedItemsVolume
+	 */
 	public int getPackedItemsVolume() {
 		return packedItemsVolume;
 	}
 
+	/**
+	 * @return the unpackedItemsVolume
+	 */
 	public int getUnpackedItemsVolume() {
 		return unpackedItemsVolume;
-	}	
+	}
 
 }

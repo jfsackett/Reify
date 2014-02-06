@@ -1,3 +1,20 @@
+/*
+    Bin Packing System
+    Copyright (C) 2014  Sackett Inc.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 package com.sackett.reify.bp.view;
 
 import java.awt.BorderLayout;
@@ -17,7 +34,7 @@ import com.sackett.reify.bp.Bin;
 import com.sackett.reify.bp.BinSpace;
 import com.sackett.reify.bp.Item;
 
-/** View of MVC pattern. */
+/** View responsible for rendering Bin Packing elements to the graphics context. */
 public class BPView extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
@@ -60,33 +77,31 @@ public class BPView extends JPanel {
     private void buildUI() {
 		// Initialize bin.
     	bin = new Bin(BIN_WIDTH, BIN_HEIGHT);
-		masterItems.clear();
-		masterItems.add(new Item(150, 300));
-		masterItems.add(new Item(100, 400));
-		masterItems.add(new Item(250, 150));
-		masterItems.add(new Item(400, 250));
-		masterItems.add(new Item(250, 150));
-		masterItems.add(new Item(250, 250));
-		masterItems.add(new Item(250, 100));
+    	masterItems = generateNewItems(BIN_WIDTH * BIN_HEIGHT + 2000);
 		unpackedItems = new ArrayList<Item>();
 		unpackedItems.addAll(masterItems);				
     	
+		// Init bin display panel.
         binPanel = new BinPanel(bin, unpackedItems, INIT_STATUS);
         
+        // Add button listeners.
         newButton.addActionListener(newItems());
         shuffleButton.addActionListener(shuffleItems());
         packButton.addActionListener(packItems());
-                
+        
+        // Set button sizes.
         newButton.setPreferredSize(new Dimension(100, 30));
         shuffleButton.setPreferredSize(new Dimension(100, 30));
         packButton.setPreferredSize(new Dimension(100, 30));
         
+        // Create button panel.
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 15));
         buttonPanel.add(newButton);
         buttonPanel.add(shuffleButton);
         buttonPanel.add(packButton);
         
+        // Add panels to view panel.
         add(binPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.PAGE_END);
     }
@@ -206,14 +221,15 @@ public class BPView extends JPanel {
         	    	
             	}
             	
+            	// Analyze packing efficiency.
             	BPSpaceAnalyzer analyzer = new BPSpaceAnalyzer();
             	analyzer.visit(bin);
             	for (Item item : unpackedItems) {
             		analyzer.visit(item);
             	}
             	
-            	binPanel.setStatus("Percent Full:  " + String.format("%.2f", analyzer.getPackedSpaceRatio() * 100) + " %");
-            	
+            	// Update & repaint UI.
+            	binPanel.setStatus("Percent Full:  " + String.format("%.2f", analyzer.getPackedSpaceRatio() * 100) + " %");            	
             	binPanel.setBin(bin);
             	binPanel.repaint();
             }
