@@ -59,6 +59,18 @@
 
 (import '(java.util HashMap))
 
+;(defn make-item-builder
+;  "Create an item."
+;  [avail-ids]
+;  (fn []
+;    (dosync 
+;      (let [id (peek @avail-ids)]
+;        (alter avail-ids pop)
+;        (new HashMap {
+;         :id id
+;         :length (* 50 (inc (rand-int 7)))  
+;         :width (* 50 (inc (rand-int 7)))})))))
+
 (defn make-item-builder
   "Create an item."
   [avail-ids]
@@ -66,17 +78,119 @@
     (dosync 
       (let [id (peek @avail-ids)]
         (alter avail-ids pop)
-        (new HashMap {
-         :id id
+        {:item {:id id
          :length (* 50 (inc (rand-int 7)))  
-         :width (* 50 (inc (rand-int 7)))})))))
+         :width (* 50 (inc (rand-int 7)))}}))))
 
 (def item-builder (make-item-builder avail-ids))
 
-(def a-map (new HashMap {:y 1 :n 2}))
-(:y a-map)
-
 (item-builder)
+
+(defn build-items
+  "Build a list of items."
+  [num-items]
+  (loop [ix num-items
+         items []]
+    (if (zero? ix) items
+      (recur  (dec ix) (conj items (item-builder))))))
+
+;(build-items 3)
+
+;(defn pack-item
+;  "Packs an item into pallet at the input coordinates."
+;  [pallet item x y]
+;  (update-in pallet [:items] conj item))
+
+(defn pack-item
+  "Packs an item into pallet at the input coordinates."
+  [pallet item x y]
+  (update-in pallet [:items] conj (assoc-in (assoc-in item [:x] x) [:y] y)))
+
+;(def pal (pallet-builder))
+;pal
+;(def item (item-builder))
+;item
+;
+;(pack-item pal item 0 0)
+
+;(def a-map (new HashMap {:y 1 :n 2}))
+;(:y a-map)
+
+;(defn echo [say]
+;  (println say))
 
 (defn echo [say]
   (println say))
+
+(def PALLET_LENGTH 750)
+(def PALLET_WIDTH 500)
+
+(defn make-pallet-builder
+  "Create a pallet."
+  [length width]
+  (fn []
+    {:length length  
+     :width width
+     :items []}))
+
+(def pallet-builder (make-pallet-builder PALLET_LENGTH PALLET_WIDTH))
+
+(pallet-builder)
+
+;	private ActionListener packItems() {
+;		return new ActionListener() { 
+;            @Override
+;            public void actionPerformed(ActionEvent event) {
+;            	bin = new Bin(BIN_WIDTH, BIN_HEIGHT);
+;            	
+;               	// Space in which to pack item. Also used in loop conditional. 
+;            	BinSpace binSpace = new BinSpace();
+;            	// Loop until all items packed or no space sized to hold any items.
+;            	while (!unpackedItems.isEmpty() && binSpace != null) {
+;            		// Clear prior search context.
+;            		List<BinSpace> binSpaces = new ArrayList<BinSpace>();
+;        	    	// Loop until there are no more available spaces.
+;        	    	while ((binSpace = bin.findNextSpace(binSpaces)) != null) {
+;        	    		binSpaces.add(binSpace);
+;        	    		// Retain best fit item & fitness through search.
+;        	    		Item bestFitItem = null;
+;        	    		int bestFitness = -1;
+;        	    		// Loop through all items to find best fit item.
+;        	    		for (Item item : unpackedItems) {
+;        	    			int currFitness;
+;        	    			// Better fit?
+;        	    			if ((currFitness = item.fitnessForSpace(binSpace)) > bestFitness) {
+;        	    				// Retain item.
+;        	    				bestFitItem = item;
+;        	    				bestFitness = currFitness;
+;        	    			}
+;        	    		}
+;        	    		
+;        	    		// If no fit items, can't place one, continue to next space.
+;        	    		if (bestFitItem == null) {
+;        	    			continue;
+;        	    		}
+;        	    		
+;        	    		// Add item to bin in available space. Left or right wall decided by conditional.
+;        	    		bin.addItem(bestFitItem, binSpace, binSpace.getLeftWall() >= binSpace.getRightWall());
+;        	    		unpackedItems.remove(bestFitItem);
+;        	    		break;
+;        	    	}
+;        	    	
+;            	}
+;            	
+;            	// Analyze packing efficiency.
+;            	BPSpaceAnalyzer analyzer = new BPSpaceAnalyzer();
+;            	analyzer.visit(bin);
+;            	for (Item item : unpackedItems) {
+;            		analyzer.visit(item);
+;            	}
+;            	
+;            	// Update & repaint UI.
+;            	binPanel.setStatus("Percent Full:  " + String.format("%.2f", analyzer.getPackedSpaceRatio() * 100) + " %");            	
+;            	binPanel.setBin(bin);
+;            	binPanel.repaint();
+;            }
+;		};
+;	}    
+

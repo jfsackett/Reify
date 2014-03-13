@@ -32,8 +32,8 @@ public class PalletizerView extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
 	// Model constants.
-	private static int BIN_WIDTH = 750;
-	private static int BIN_HEIGHT = 500;
+	private static int PALLET_WIDTH = 750;
+	private static int PALLET_HEIGHT = 500;
 	
 	// Initial status message.
 	private static String INIT_STATUS = "New: Generate Items     Shuffle: Change Item Order     Palletize: Pack Items";
@@ -82,7 +82,7 @@ public class PalletizerView extends JPanel {
     	
 		// Init bin display panel.
 //        binPanel = new BinPanel(bin, unpackedItems, INIT_STATUS);
-    	palletPanel = new PalletPanel(model.getPalletAdapter(), INIT_STATUS);
+    	palletPanel = new PalletPanel(model, INIT_STATUS);
         
         // Add button listeners.
 //        newButton.addActionListener(newItems());

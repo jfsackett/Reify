@@ -46,8 +46,8 @@ public class PalletizerCj extends JFrame {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-            	PalletizerCj binPacking = new PalletizerCj();
-            	binPacking.setVisible(true);
+            	PalletizerCj palletizer = new PalletizerCj();
+            	palletizer.setVisible(true);
             }
         });
     }

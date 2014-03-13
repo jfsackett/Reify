@@ -17,19 +17,8 @@
 */
 package model;
 
-
-/** Interface for visitor to bin packing elements. Part of the visitor pattern. */
-public interface ElementVisitor {
-
-	/** Visit a Pallet. */
-	public void visit(Pallet pallet);
-
-	/** Visit a Packed Item. */
-	public void visit(PackedItem packedItem);
-
-//	/** Visit an Item. */
-//	public void visit(Item item);
-//	
-//	/** Visit a SpaceMap. */
-//	public void visit(SpaceMap spaceMap);	
+/** Interface for visiting pallet elements. Part of the visitor pattern. */
+public interface PalletElement {
+	/** Visitor accept method. */
+	public void accept(ElementVisitor visitor);
 }

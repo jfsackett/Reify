@@ -21,7 +21,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 
 import model.ElementVisitor;
-import model.PalletAdapter;
+import model.PackedItem;
+import model.Pallet;
 
 /** Visits bin elements to graphically display them. */
 public class GraphicsRenderer implements ElementVisitor {
@@ -45,25 +46,25 @@ public class GraphicsRenderer implements ElementVisitor {
 	}
 
 	/** Visit a Bin. */
-	public void visit(PalletAdapter pallet) {
+	public void visit(Pallet pallet) {
 		ShapeNormalizer normalizer = new ShapeNormalizer(panelHeight, yOffset, xOffset, pallet.getLength(), pallet.getWidth());
 		graphics.setColor(Color.black);
 		graphics.drawRect(normalizer.getULXOffset(), normalizer.getULYOffset(), normalizer.getWidth(), normalizer.getLength());
 		// Visit items packed in bin.
-//		for (PackedItem packedItem : bin.getPackedItems()) {
-//			visit(packedItem);
-//		}
+		for (PackedItem packedItem : pallet.getPackedItems()) {
+			visit(packedItem);
+		}
 	}
 
-//	/** Visit a Packed Item. */
-//	public void visit(PackedItem packedItem) {
-//		ShapeNormalizer normalizer = new ShapeNormalizer(panelHeight, yOffset + packedItem.getxOffset(), xOffset + packedItem.getyOffset(), packedItem.getItem().getLength(), packedItem.getItem().getWidth());
-//		graphics.setColor(new Color(packedItem.getItem().getId()));
-//		graphics.fillRect(normalizer.getULXOffset(), normalizer.getULYOffset(), normalizer.getWidth(), normalizer.getLength());
-//        graphics.setColor(Color.black);
-//        graphics.drawRect(normalizer.getULXOffset(), normalizer.getULYOffset(), normalizer.getWidth(), normalizer.getLength());
-//	}
-//
+	/** Visit a Packed Item. */
+	public void visit(PackedItem packedItem) {
+		ShapeNormalizer normalizer = new ShapeNormalizer(panelHeight, yOffset + packedItem.getxOffset(), xOffset + packedItem.getyOffset(), packedItem.getItem().getLength(), packedItem.getItem().getWidth());
+		graphics.setColor(new Color(packedItem.getItem().getId()));
+		graphics.fillRect(normalizer.getULXOffset(), normalizer.getULYOffset(), normalizer.getWidth(), normalizer.getLength());
+        graphics.setColor(Color.black);
+        graphics.drawRect(normalizer.getULXOffset(), normalizer.getULYOffset(), normalizer.getWidth(), normalizer.getLength());
+	}
+
 //	/** Visit an Item. */
 //	public void visit(Item item) {
 //		// NoOp.

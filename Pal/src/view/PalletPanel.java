@@ -24,25 +24,22 @@ import java.awt.Graphics2D;
 
 import javax.swing.JPanel;
 
-import model.PalletAdapter;
+import model.Item;
+import model.PalletizerModel;
 
 /** This is responsible for rendering the game state to the graphics context. */
 public class PalletPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
-	/** The Bin to be rendered. */
-	PalletAdapter bin;
+	/** The model to display. */
+	PalletizerModel model;
 
-	/** The Items to be packed. */
-//	List<Item> unpackedItems;
-	
 	/** Status message. */
 	String status;
 
-    public PalletPanel(PalletAdapter bin, String status) { // , List<Item> unpackedItems, String status) {
+    public PalletPanel(PalletizerModel model, String status) {
 		super();
-		this.bin = bin;
-//		this.unpackedItems = unpackedItems;
+		this.model = model;
 		this.status = status;
 	}
 
@@ -51,12 +48,12 @@ public class PalletPanel extends JPanel {
         Graphics2D graphics2d = (Graphics2D) graphics;
 
     	// Draw shapes to be packed.
-//        drawUnpackedItems(graphics2d);
+        drawUnpackedItems(graphics2d);
         
         // Render packed bin.
     	GraphicsRenderer graphicsRenderer = new GraphicsRenderer(graphics2d, 5, 20, this.getHeight());
     	
-    	graphicsRenderer.visit(bin);
+    	graphicsRenderer.visit(model.getPallet());
     	
         graphics2d.setColor(Color.black);
         graphics2d.setFont(new Font("Sans Serif", Font.PLAIN, 18));
@@ -70,16 +67,16 @@ public class PalletPanel extends JPanel {
         doDrawing(g);
     }
 
-//    private void drawUnpackedItems(Graphics2D graphics2d) {
-//    	int xOffset = 20;
-//    	for (Item item : unpackedItems) {
-//    		graphics2d.setColor(new Color(item.getId()));
-//    		graphics2d.fillRect(xOffset, 10, item.getLength() / 4, item.getWidth() / 4);
-//            graphics2d.setColor(Color.black);
-//    		graphics2d.drawRect(xOffset, 10, item.getLength() / 4, item.getWidth() / 4);
-//    		xOffset = xOffset + item.getLength() / 4 + 10;
-//    	}
-//    }
+    private void drawUnpackedItems(Graphics2D graphics2d) {
+    	int xOffset = 20;
+    	for (Item item : model.getUnpackedItems()) {
+    		graphics2d.setColor(new Color(item.getId()));
+    		graphics2d.fillRect(xOffset, 10, item.getLength() / 4, item.getWidth() / 4);
+            graphics2d.setColor(Color.black);
+    		graphics2d.drawRect(xOffset, 10, item.getLength() / 4, item.getWidth() / 4);
+    		xOffset = xOffset + item.getLength() / 4 + 10;
+    	}
+    }
 
 //	/**
 //	 * @param bin the bin to set
