@@ -14,11 +14,11 @@ public class PackedItemAdapter extends ItemAdapter implements PackedItem {
 	}
 
 	public int getxOffset() {
-		return ((Integer) attribMap.get(keys.get("x")));
+		return ((Long) attribMap.get(keys.get("x"))).intValue();
 	}
 	
 	public int getyOffset() {
-		return ((Integer) attribMap.get(keys.get("y")));
+		return ((Long) attribMap.get(keys.get("y"))).intValue();
 	}
 
 	/** Visitor accept method. */

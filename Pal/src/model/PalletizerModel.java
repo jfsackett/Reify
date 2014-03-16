@@ -34,19 +34,24 @@ public class PalletizerModel {
 		}
 		// Build items in Clojure.
 		unpackedItems = new ArrayList<Item>();
-		Var clojure = RT.var("pal.core", "build-items");
-		unpackedItemsClj = clojure.invoke(NUM_ITEMS);
+//		Var clojure = RT.var("pal.core", "build-items");
+//		unpackedItemsClj = clojure.invoke(NUM_ITEMS);
+		Var clojure = RT.var("pal.core", "get-unpacked-items");
+		unpackedItemsClj = clojure.invoke();
 		for (Object item : (PersistentVector) unpackedItemsClj) {
 			unpackedItems.add(new ItemAdapter((Map) item));
 		}
 
 		// Build pallet in Clojure.
-		clojure = RT.var("pal.core", "pallet-builder");
-		palletClj = clojure.invoke();
+//		clojure = RT.var("pal.core", "get-pallet");
+//		clojure = RT.var("pal.core", "pallet-builder");
+//		palletClj = clojure.invoke();
 		
 		// Pack an item into pallet.
-		clojure = RT.var("pal.core", "pack-item");
-		palletClj = clojure.invoke(palletClj, ((PersistentVector) unpackedItemsClj).get(0), 0, 0);
+//		clojure = RT.var("pal.core", "pack-item");
+//		palletClj = clojure.invoke(palletClj, ((PersistentVector) unpackedItemsClj).get(0), 0, 0);
+		clojure = RT.var("pal.core", "pack-items");
+		palletClj = clojure.invoke();
 		this.pallet = new PalletAdapter((Map) palletClj);
 		
 		clojure = RT.var("pal.core", "echo");

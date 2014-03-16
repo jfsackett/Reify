@@ -20,6 +20,8 @@ package view;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -87,7 +89,7 @@ public class PalletizerView extends JPanel {
         // Add button listeners.
 //        newButton.addActionListener(newItems());
 //        shuffleButton.addActionListener(shuffleItems());
-//        packButton.addActionListener(packItems());
+        packButton.addActionListener(packItems());
         
         // Set button sizes.
         newButton.setPreferredSize(new Dimension(100, 30));
@@ -106,6 +108,28 @@ public class PalletizerView extends JPanel {
         add(buttonPanel, BorderLayout.PAGE_END);
     }
 
+	/** Builds action listener for executing packing heuristic. */
+	private ActionListener packItems() {
+		return new ActionListener() { 
+            @Override
+            public void actionPerformed(ActionEvent event) {
+            	
+            	// Analyze packing efficiency.
+//            	BPSpaceAnalyzer analyzer = new BPSpaceAnalyzer();
+//            	analyzer.visit(bin);
+//            	for (Item item : unpackedItems) {
+//            		analyzer.visit(item);
+//            	}
+//            	
+//            	// Update & repaint UI.
+//            	binPanel.setStatus("Percent Full:  " + String.format("%.2f", analyzer.getPackedSpaceRatio() * 100) + " %");            	
+//            	binPanel.setBin(bin);
+            	
+            	palletPanel.repaint();
+            }
+		};
+	}
+    
 	/** Build the list of items to pack. */
 //	private ActionListener newItems() {
 //		return new ActionListener() { 
