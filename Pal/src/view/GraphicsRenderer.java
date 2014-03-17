@@ -1,5 +1,5 @@
 /*
-    Bin Packing System
+    Palletizer
     Copyright (C) 2014  Sackett Inc.
 
     This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ import model.ElementVisitor;
 import model.PackedItem;
 import model.Pallet;
 
-/** Visits bin elements to graphically display them. */
+/** Visits pallet elements to graphically display them. */
 public class GraphicsRenderer implements ElementVisitor {
 	/** Graphics context. */
 	Graphics2D graphics;
@@ -45,7 +45,7 @@ public class GraphicsRenderer implements ElementVisitor {
 		this.panelHeight = panelHeight;
 	}
 
-	/** Visit a Bin. */
+	/** Visit a Pallet. */
 	public void visit(Pallet pallet) {
 		ShapeNormalizer normalizer = new ShapeNormalizer(panelHeight, yOffset, xOffset, pallet.getLength(), pallet.getWidth());
 		graphics.setColor(Color.black);
@@ -65,22 +65,6 @@ public class GraphicsRenderer implements ElementVisitor {
         graphics.drawRect(normalizer.getULXOffset(), normalizer.getULYOffset(), normalizer.getWidth(), normalizer.getLength());
 	}
 
-//	/** Visit an Item. */
-//	public void visit(Item item) {
-//		// NoOp.
-//	}
-//
-//	/** Visit a SpaceMap. */
-//	public void visit(SpaceMap spaceMap) {
-//		boolean[][] fillBits = spaceMap.getFillBits();
-//		for (int y = 0; y < fillBits.length; y++) {
-//			for (int x = 0; x < fillBits[y].length; x++) {
-//				graphics.setColor((fillBits[y][x]) ? Color.black : Color.white);
-//				graphics.drawLine(x + xOffset, panelHeight - yOffset - y, x + xOffset, panelHeight - yOffset - y);
-//			}
-//		}
-//	}	
-	
 	/** Responsible for adjusting coordinates from domain based (lower-left) to display (upper-left) based. */ 
 	private static class ShapeNormalizer {
 		/** Panel length. */
@@ -133,6 +117,6 @@ public class GraphicsRenderer implements ElementVisitor {
 		public int getLength() {
 			return length;
 		}
-		
 	}
+	
 }

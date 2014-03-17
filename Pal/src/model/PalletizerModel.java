@@ -1,22 +1,34 @@
+/*
+    Palletizer
+    Copyright (C) 2014  Sackett Inc.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 package model;
 
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.event.SwingPropertyChangeSupport;
-
 import clojure.lang.PersistentVector;
 import clojure.lang.RT;
 import clojure.lang.Var;
 
+/** Main Palletizer application model. */
 @SuppressWarnings("rawtypes")
 public class PalletizerModel {
-	// Property change constants.
-	public static final String PALLET = "PALLET";
-	public static final String UNPACKED_ITEMS = "UNPACKED_ITEMS";
 	
 	/** Main pallet. */
 	private Pallet pallet;
@@ -30,12 +42,7 @@ public class PalletizerModel {
 	/** Clojure unpacked items. */
 	private Object unpackedItemsClj;
 	
-	/** Change event generator. */
-    private SwingPropertyChangeSupport propChangeEventGen;
-
 	public PalletizerModel() {
-		propChangeEventGen = new SwingPropertyChangeSupport(this);
-		
 		try {
 			RT.loadResourceScript("pal/core.clj");
 		} catch (IOException e) {
@@ -43,8 +50,6 @@ public class PalletizerModel {
 		}
 		// Build items in Clojure.
 		unpackedItems = new ArrayList<Item>();
-//		Var clojure = RT.var("pal.core", "build-items");
-//		unpackedItemsClj = clojure.invoke(NUM_ITEMS);
 		Var clojure = RT.var("pal.core", "get-unpacked-items");
 		unpackedItemsClj = clojure.invoke();
 		for (Object item : (PersistentVector) unpackedItemsClj) {
@@ -53,20 +58,8 @@ public class PalletizerModel {
 
 		// Build pallet in Clojure.
 		clojure = RT.var("pal.core", "get-pallet");
-//		clojure = RT.var("pal.core", "pallet-builder");
 		palletClj = clojure.invoke();
 		this.pallet = new PalletAdapter((Map) palletClj);
-		
-		// Pack an item into pallet.
-//		clojure = RT.var("pal.core", "pack-item");
-//		palletClj = clojure.invoke(palletClj, ((PersistentVector) unpackedItemsClj).get(0), 0, 0);
-		
-//		clojure = RT.var("pal.core", "pack-items");
-//		palletClj = clojure.invoke();
-//		this.pallet = new PalletAdapter((Map) palletClj);
-		
-//		clojure = RT.var("pal.core", "echo");
-//		clojure.invoke(unpackedItemsClj);
 	}
 
 	public void newItems() {
@@ -83,8 +76,22 @@ public class PalletizerModel {
 		clojure = RT.var("pal.core", "get-pallet");
 		palletClj = clojure.invoke();
 		this.pallet = new PalletAdapter((Map) palletClj);
+	}
+	
+	public void shuffleItems() {
+		Var clojure = RT.var("pal.core", "shuffle-items");
+		clojure.invoke();
 		
-//		propChangeEventGen.firePropertyChange(PALLET, priorComplexity, complexity);
+		unpackedItems.clear();
+		clojure = RT.var("pal.core", "get-unpacked-items");
+		unpackedItemsClj = clojure.invoke();
+		for (Object item : (PersistentVector) unpackedItemsClj) {
+			unpackedItems.add(new ItemAdapter((Map) item));
+		}
+		
+		clojure = RT.var("pal.core", "get-pallet");
+		palletClj = clojure.invoke();
+		this.pallet = new PalletAdapter((Map) palletClj);
 	}
 	
 	public void packItems() {
@@ -98,7 +105,6 @@ public class PalletizerModel {
 		for (Object item : (PersistentVector) unpackedItemsClj) {
 			unpackedItems.add(new ItemAdapter((Map) item));
 		}
-//		propChangeEventGen.firePropertyChange(PALLET, priorComplexity, complexity);
 	}
 	
 	public Pallet getPallet() {
@@ -107,10 +113,5 @@ public class PalletizerModel {
 
 	public List<Item> getUnpackedItems() {
 		return unpackedItems;
-	}
-	
-	/** Adds a listener to model change events. */
-	public void addPropertyChangeListener(PropertyChangeListener listener) {
-		propChangeEventGen.addPropertyChangeListener(listener);
 	}
 }

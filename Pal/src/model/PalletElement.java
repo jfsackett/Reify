@@ -1,5 +1,5 @@
 /*
-    Bin Packing System
+    Palletizer
     Copyright (C) 2014  Sackett Inc.
 
     This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,8 @@ package model;
 
 /** Interface for visiting pallet elements. Part of the visitor pattern. */
 public interface PalletElement {
+	
 	/** Visitor accept method. */
 	public void accept(ElementVisitor visitor);
+	
 }

@@ -1,5 +1,5 @@
 /*
-    Bin Packing System
+    Palletizer
     Copyright (C) 2014  Sackett Inc.
 
     This program is free software: you can redistribute it and/or modify
@@ -77,20 +77,6 @@ public class PalletPanel extends JPanel {
     		xOffset = xOffset + item.getLength() / 4 + 10;
     	}
     }
-
-//	/**
-//	 * @param bin the bin to set
-//	 */
-//	public void setBin(Bin bin) {
-//		this.bin = bin;
-//	}
-//
-//	/**
-//	 * @param unpackedItems the unpackedItems to set
-//	 */
-//	public void setUnpackedItems(List<Item> unpackedItems) {
-//		this.unpackedItems = unpackedItems;
-//	}
 
 	/**
 	 * @param status the status to set

@@ -1,5 +1,5 @@
 /*
-    Bin Packing System
+    Palletizer
     Copyright (C) 2014  Sackett Inc.
 
     This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -33,13 +32,15 @@ public class PalletizerCj extends JFrame {
 	private static int WIDTH = 800;
 	private static int HEIGHT = 720;
 	
+	/** Palletizer state model. */
 	private PalletizerModel model;
 	
+	/** Palletizer view. */
 	private PalletizerView view;
 	
+	/** UI controller. */
 	@SuppressWarnings("unused")
 	private PalletizerController controller;
-
 	
     /** Main program initializes UI & kicks off bin packing UI. */
     public static void main(String[] args) {
@@ -72,28 +73,3 @@ public class PalletizerCj extends JFrame {
         setLocationRelativeTo(null);        
     }
 }
-
-/* FROM OLD  CODE 
-public static void main(String[] args) {
-System.out.println("start");
-try {
-	RT.loadResourceScript("pal/core.clj");
-	Var pal = RT.var("pal.core", "echo");
-	pal.invoke("Reify Rocks !!");
-	pal = RT.var("pal.core", "item-builder");
-	Object obj = pal.invoke();
-	System.out.println(obj);
-	Map map = (Map) obj;
-	for (Object key : map.keySet()) {
-		System.out.println(key);
-		System.out.println(map.get(key));			
-	}
-//	System.out.println(map.get(new Keyword("id")));			
-	System.out.println(map.get("id"));			
-	System.out.println(map.get(":id"));			
-} catch (IOException e) {
-	e.printStackTrace();
-}
-System.out.println("end");
-}
-*/
