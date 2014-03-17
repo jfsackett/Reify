@@ -129,8 +129,16 @@
 ;@pallet
 (def space-map (ref (build-empty-space-map)))
 
-(defn get-unpacked-items [] @unpacked-items)
+(defn get-unpacked-items [] @unpacked-items) ;(do (println @unpacked-items) @unpacked-items))
 (defn get-pallet [] @pallet)
+
+(defn reset-all
+  "Clears pallet & generates new items."
+  []
+  (dosync
+    (ref-set unpacked-items (build-items 14))
+    (ref-set pallet (pallet-builder))
+    (ref-set space-map (build-empty-space-map))))
 
 ;(build-items 3)
 
@@ -276,7 +284,7 @@
   (if (zero? (count vector))
     []
     (if (= (inc ix) (count vector))
-      (subvec vector 0 ix)
+      (into [] (subvec vector 0 ix))
       (into [] (concat (subvec vector 0 ix) (subvec vector (inc ix)))))))
 
 (defn pack-items

@@ -42,8 +42,6 @@ public class PalletizerView extends JPanel {
 	
 	private PalletizerModel model;
 	
-	
-	
 //	/** Bin to pack. - Model. */
 //	Bin bin;
 //	
@@ -107,6 +105,22 @@ public class PalletizerView extends JPanel {
         add(palletPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.PAGE_END);
     }
+
+	public PalletPanel getPalletPanel() {
+		return palletPanel;
+	}
+
+	public JButton getNewButton() {
+		return newButton;
+	}
+
+	public JButton getShuffleButton() {
+		return shuffleButton;
+	}
+
+	public JButton getPackButton() {
+		return packButton;
+	}
 
 	/** Builds action listener for executing packing heuristic. */
 	private ActionListener packItems() {

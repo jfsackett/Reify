@@ -57,7 +57,7 @@ public class PalletPanel extends JPanel {
     	
         graphics2d.setColor(Color.black);
         graphics2d.setFont(new Font("Sans Serif", Font.PLAIN, 18));
-    	graphics2d.drawString(status, 20, 150);
+    	graphics2d.drawString(status, 20, 120);
     } 
 
 	/** Paint the component. */

@@ -31,7 +31,7 @@ public class PalletizerCj extends JFrame {
 	// GUI display constants.
 	private static String TITLE = "Palletizer 2D";
 	private static int WIDTH = 800;
-	private static int HEIGHT = 750;
+	private static int HEIGHT = 720;
 	
 	private PalletizerModel model;
 	
