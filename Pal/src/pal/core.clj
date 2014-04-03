@@ -109,7 +109,7 @@
     (ref-set space-map (build-empty-space-map))))
 
 (defn fill-space-map 
-  "Fill map of available spaces in a pallet."
+  "Fill map of occupied space in a pallet space map."
   []
   (dosync
 	  (doseq [item (@pallet :items)]
